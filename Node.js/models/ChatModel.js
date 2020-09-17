@@ -11,7 +11,7 @@ const ChatSchema = new Schema({
     message: {
         type: String,
         required: true,
-    }
+    },
 });
 
 const ChatModel = mongoose.model('chat', ChatSchema);

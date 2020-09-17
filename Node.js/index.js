@@ -9,7 +9,7 @@ const passport = require('passport');
 
 const routes = require('./routes/main');
 const passwordRoutes = require('./routes/password');
-const { request } = require('express');
+// const { request } = require('express');
 const secureRoutes = require('./routes/secure');
 
 // Setup mongo connection
@@ -17,7 +17,7 @@ const uri = process.env.MONGO_CONNECTION_URL;
 const mongoConfig = {
     useNewUrlParser: true,
     useCreateIndex: true,
-    useUnifiedTopology: true,
+    // useUnifiedTopology: true,
 };
 if(process.env.MONGO_USER_NAME && process.env.MONGO_PASSWORD){
     mongoConfig.auth = { authSource: 'admin' };
@@ -46,7 +46,7 @@ require('./auth/auth.js');
 // setup routes
 app.use('/', routes);
 app.use('/', passwordRoutes);
-app.use('/', passport.authenticate('jwt', { session: false }),secureRoutes);
+app.use('/', passport.authenticate('jwt', { session: false }), secureRoutes);
 
 // handle all other routes
 app.use((request, response) => {
