@@ -1,0 +1,15 @@
+{
+  "name": "modernjavascript",
+  "version": "1.0.0",
+  "description": "",
+  "main": "ModernJavascript.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "node ModernJavascript.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "node-fetch": "^2.6.1"
+  }
+}
