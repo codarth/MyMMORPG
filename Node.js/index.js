@@ -31,6 +31,8 @@ mongoose.connection.on('error', (error)=>{
     process.exit(1);
 });
 
+mongoose.set('useFindAndModify', false);
+
 const app = express();
 const port = process.env.PORT || 3000;
 
