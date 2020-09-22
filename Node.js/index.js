@@ -10,7 +10,7 @@ const passport = require('passport');
 const routes = require('./routes/main');
 const passwordRoutes = require('./routes/password');
 const secureRoutes = require('./routes/secure');
-const { response } = require('express');
+const { response, request } = require('express');
 
 // Setup mongo connection
 const uri = process.env.MONGO_CONNECTION_URL;
@@ -44,6 +44,10 @@ app.use(cookieParser());
 
 // require passport auth
 require('./auth/auth.js');
+
+app.get('/game.html', passport.authenticate('jwt', {session: false }), (request, response) => {
+    response.status(200).json(request.user);
+})
 
 app.use(express.static(__dirname + '/public'));
 

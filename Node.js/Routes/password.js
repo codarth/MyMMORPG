@@ -56,7 +56,7 @@ router.post('/forgotpassword', async (request, response) => {
                 subject: "Zenva MMO password Reset",
                 context: {
                     name: 'jo',
-                    url: `http://localhost:${process.env.PORT || 3000}?token=${token}`,
+                    url: `http://localhost:${process.env.PORT || 3000}/resetpassword.html?token=${token}`,
                 },
             };
             await smtpTransport.sendMail(emailOptions);
@@ -76,8 +76,8 @@ router.post('/resetpassword', async (request, response) => {
         return;
     }
     
-    // Ensure password provided, and matches password
-    if(!request.body.password || !request.body.verifiedPassword || request.body.password!=request.body.verifiedPassword){
+    // Ensure password provided, and matches  verifiypassword
+    if(!request.body.password || !request.body.verifiedPassword  || request.body.password != request.body.verifiedPassword ){
         response.status(400).json({ message: 'Passwords do not match', status: 400});
         return;
     }
