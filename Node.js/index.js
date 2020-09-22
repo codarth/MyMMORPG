@@ -9,8 +9,8 @@ const passport = require('passport');
 
 const routes = require('./routes/main');
 const passwordRoutes = require('./routes/password');
-// const { request } = require('express');
 const secureRoutes = require('./routes/secure');
+const { response } = require('express');
 
 // Setup mongo connection
 const uri = process.env.MONGO_CONNECTION_URL;
@@ -44,6 +44,12 @@ app.use(cookieParser());
 
 // require passport auth
 require('./auth/auth.js');
+
+app.use(express.static(__dirname + '/public'));
+
+app.get('/', (request, responce) => {
+    response.send(__dirname + '/index.html');
+})
 
 // setup routes
 app.use('/', routes);
