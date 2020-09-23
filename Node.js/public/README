@@ -1,0 +1,6 @@
+to get service running:
+    & 'E:\Program Files\MongoDB\Server\4.4\bin\mongod'
+
+to get server running:
+    npm run nodemon
+
