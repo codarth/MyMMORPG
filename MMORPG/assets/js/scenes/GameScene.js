@@ -4,12 +4,7 @@ class GameScene extends Phaser.Scene {
     }
 
     create(){
-        var goldPickupAudio = this.sound.add('goldSound', { loop: false, volume: 0.2});
-
-        var button = this.add.image(100, 100, 'button1'); // No animation on image
-        button.setOrigin(0.5, 0.5);
-    
-        this.add.sprite(300,100,'button1'); // Animation available on sprite
+        var goldPickupAudio = this.sound.add('goldSound', { loop: false, volume: 0.2});    
     
         this.chest = new Chest(this, 300, 300, 'items', 0);
         
