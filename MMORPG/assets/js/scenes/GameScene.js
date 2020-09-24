@@ -15,9 +15,16 @@ class GameScene extends Phaser.Scene {
         this.createChest();
         this.createInput();
         this.addCollisions();
+
+        this.createGameManager();
     }
     
-    update() {
+    createGameManager(){
+        this.gameManager = new GameManager(this, this.map.map.objects);
+        this.gameManager.setup();
+    }
+
+    update(){
         this.player.update(this.cursors);
     }
     
