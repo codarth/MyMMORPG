@@ -9,10 +9,10 @@ class GameScene extends Phaser.Scene {
     }
 
     create(){
+        this.createMap();
         this.createAudio();
         this.createPlayer();
         this.createChest();
-        this.createWalls();
         this.createInput();
         this.addCollisions();
     }
@@ -22,11 +22,11 @@ class GameScene extends Phaser.Scene {
     }
     
     createAudio(){
-        this.goldPickupAudio = this.sound.add('goldSound', { loop: false, volume: 0.2});            
+        this.goldPickupAudio = this.sound.add('goldSound', { loop: false, volume: 1});            
     }
     
     createPlayer(){
-        this.player = new Player(this, 32, 32, 'characters', 0);
+        this.player = new Player(this, 224, 224, 'characters', 0);
     }
     
     createChest(){
@@ -53,17 +53,12 @@ class GameScene extends Phaser.Scene {
         }
     }
     
-    createWalls(){
-        this.wall = this.physics.add.image(500, 100, 'button1');
-        this.wall.setImmovable();
-    }
-    
     createInput(){
         this.cursors = this.input.keyboard.createCursorKeys();
     }
     
     addCollisions(){
-        this.physics.add.collider(this.player, this.wall);
+        this.physics.add.collider(this.player, this.map.blockedLayer);
         this.physics.add.overlap(this.player, this.chests, this.collectChest, null, this);
     }
 
@@ -74,5 +69,9 @@ class GameScene extends Phaser.Scene {
         chest.makeInactive();      
         
         this.time.delayedCall(1000, this.spawnChest, [], this);
+    }
+
+    createMap(){
+        this.map = new Map(this, 'map', 'background', 'background', 'blocked');
     }
 }
