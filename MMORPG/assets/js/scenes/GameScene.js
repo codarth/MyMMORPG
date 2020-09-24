@@ -3,27 +3,76 @@ class GameScene extends Phaser.Scene {
         super('Game');        
     }
 
-    create(){
-        var goldPickupAudio = this.sound.add('goldSound', { loop: false, volume: 0.2});    
-    
-        this.chest = new Chest(this, 300, 300, 'items', 0);
-        
-        this.wall = this.physics.add.image(500, 100, 'button1');
-        this.wall.setImmovable();
-    
-        this.player = new Player(this, 32, 32, 'characters', 0);
-    
-        this.physics.add.collider(this.player, this.wall);
-        this.physics.add.overlap(this.player, this.chest, function(player, chest) {
-            goldPickupAudio.play();
-            chest.destroy();    
-        });
-
-        this.cursors = this.input.keyboard.createCursorKeys();
+    init(){
+        this.scene.launch('Ui');
+        this.score = 0;
     }
 
+    create(){
+        this.createAudio();
+        this.createPlayer();
+        this.createChest();
+        this.createWalls();
+        this.createInput();
+        this.addCollisions();
+    }
+    
     update() {
         this.player.update(this.cursors);
     }
+    
+    createAudio(){
+        this.goldPickupAudio = this.sound.add('goldSound', { loop: false, volume: 0.2});            
+    }
+    
+    createPlayer(){
+        this.player = new Player(this, 32, 32, 'characters', 0);
+    }
+    
+    createChest(){
+        this.chests = this.physics.add.group();
 
+        this.chestPositions = [[100, 100], [200, 200], [300, 300], [400, 400], [500, 500]];
+
+        this.maxChests = 3;
+        for(let i = 0; i < this.maxChests; i++){
+            this.spawnChest();            
+        }
+    }
+
+    spawnChest(){
+        const location = this.chestPositions[Math.floor(Math.random() * this.chestPositions.length)];
+
+        let chest = this.chests.getFirstDead();
+        if(!chest){
+            const chest = new Chest(this, location[0], location[1], 'items', 0);
+            this.chests.add(chest);
+        } else {
+            chest.setPosition(location[0], location[1]);
+            chest.makeActive();
+        }
+    }
+    
+    createWalls(){
+        this.wall = this.physics.add.image(500, 100, 'button1');
+        this.wall.setImmovable();
+    }
+    
+    createInput(){
+        this.cursors = this.input.keyboard.createCursorKeys();
+    }
+    
+    addCollisions(){
+        this.physics.add.collider(this.player, this.wall);
+        this.physics.add.overlap(this.player, this.chests, this.collectChest, null, this);
+    }
+
+    collectChest(player, chest){
+        this.goldPickupAudio.play();
+        this.score += chest.coins;
+        this.events.emit('updateScore', this.score);
+        chest.makeInactive();      
+        
+        this.time.delayedCall(1000, this.spawnChest, [], this);
+    }
 }
