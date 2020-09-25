@@ -1,14 +1,16 @@
-class Chest extends Phaser.Physics.Arcade.Image {
-    constructor(scene, x, y, key, frame, coins, id){
+class Monster extends Phaser.Physics.Arcade.Image {
+    constructor(scene, x, y, key, frame, id, health, maxHeath){
         super(scene, x, y, key, frame);
         this.scene = scene;
-        this.coins = coins;
-        this,id, id;
+        this.id = id;
+        this.health = health;
+        this.maxHeath = maxHeath;
 
         this.scene.physics.world.enable(this);
-
-        this.scene.add.existing(this);
+        this.setImmovable(false);
         this.setScale(2);
+        this.setCollideWorldBounds(true);    
+        this.scene.add.existing(this);
     }
 
     makeActive(){

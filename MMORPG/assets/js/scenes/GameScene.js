@@ -11,7 +11,7 @@ class GameScene extends Phaser.Scene {
     create(){
         this.createMap();
         this.createAudio();
-        this.createChest();
+        this.createGroups();
         this.createInput();
         
         this.createGameManager();
@@ -21,6 +21,14 @@ class GameScene extends Phaser.Scene {
         this.events.on('spawnPlayer', (location) => {
             this.createPlayer(location);
             this.addCollisions();            
+        });
+
+        this.events.on('chestSpawned', (chest) => {
+            this.spawnChest(chest);
+        });
+
+        this.events.on('monsterSpawned', (monster) => {
+            this.spawnMonster(monster);
         });
 
         this.gameManager = new GameManager(this, this.map.map.objects);
@@ -42,27 +50,45 @@ class GameScene extends Phaser.Scene {
         this.player = new Player(this, location[0] * 2, location[1] * 2, 'characters', 0);
     }
     
-    createChest(){
+    createGroups(){
         this.chests = this.physics.add.group();
+        this.monsters = this.physics.add.group();
+    }
 
-        this.chestPositions = [[100, 100], [200, 200], [300, 300], [400, 400], [500, 500]];
-
-        this.maxChests = 3;
-        for(let i = 0; i < this.maxChests; i++){
-            this.spawnChest();            
+    spawnChest(chestObject){
+        let chest = this.chests.getFirstDead();
+        if(!chest){
+            chest = new Chest(this, chestObject.x * 2, chestObject.y * 2, 'items', 0, chestObject.gold, chestObject.id);
+            this.chests.add(chest);
+        } else {
+            chest.coins = chest.gold;
+            chest.id = chestObject.id;
+            chest.setPosition(chestObject.x * 2, chestObject.y * 2);
+            chest.makeActive();
         }
     }
 
-    spawnChest(){
-        const location = this.chestPositions[Math.floor(Math.random() * this.chestPositions.length)];
-
-        let chest = this.chests.getFirstDead();
-        if(!chest){
-            const chest = new Chest(this, location[0], location[1], 'items', 0);
-            this.chests.add(chest);
+    spawnMonster(monsterObject){
+        let monster = this.monsters.getFirstDead();
+        if(!monster){
+            monster = new Monster(
+                this, 
+                monsterObject.x * 2, 
+                monsterObject.y * 2, 
+                'monsters', 
+                monsterObject.frame,  
+                monsterObject.id,
+                monsterObject.health,
+                monsterObject.maxHealth,                
+            );
+            this.monsters.add(monster);
         } else {
-            chest.setPosition(location[0], location[1]);
-            chest.makeActive();
+            monster.id = monsterObject.id;
+            monster.health = monsterObject.health;
+            monster.maxHealth = monsterObject.maxHealth;
+            monster.setTexture('monsters', monsterObject.frame);
+            monster.setPosition(monsterObject.x * 2, monsterObject.y * 2);
+            monster.makeActive();
         }
     }
     
@@ -73,6 +99,9 @@ class GameScene extends Phaser.Scene {
     addCollisions(){
         this.physics.add.collider(this.player, this.map.blockedLayer);
         this.physics.add.overlap(this.player, this.chests, this.collectChest, null, this);
+        this.physics.add.collider(this.monsters, this.map.blockedLayer);
+        this.physics.add.overlap(this.player, this.monsters, this.enemyOverlap, null, this);
+
     }
 
     collectChest(player, chest){
@@ -81,7 +110,12 @@ class GameScene extends Phaser.Scene {
         this.events.emit('updateScore', this.score);
         chest.makeInactive();      
         
-        this.time.delayedCall(1000, this.spawnChest, [], this);
+        this.events.emit('pickupChest', chest.id);
+    }
+
+    enemyOverlap(player, enemy){
+        enemy.makeInactive();
+        this.events.emit('destroyEnemy', enemy.id);
     }
 
     createMap(){
