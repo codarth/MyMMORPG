@@ -47,7 +47,7 @@ class GameScene extends Phaser.Scene {
     }
     
     createPlayer(location){
-        this.player = new Player(this, location[0] * 2, location[1] * 2, 'characters', 0);
+        this.player = new PlayerContainer(this, location[0] * 2, location[1] * 2, 'characters', 0);
     }
     
     createGroups(){
