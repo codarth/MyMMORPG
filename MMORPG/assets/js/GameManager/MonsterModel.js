@@ -12,4 +12,8 @@ class MonsterModel{
         this.maxHealth = health;
     }
 
+    loseHealth(){
+        console.log(this.health);
+        this.health -= 1;
+    }
 }
