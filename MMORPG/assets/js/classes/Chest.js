@@ -3,7 +3,7 @@ class Chest extends Phaser.Physics.Arcade.Image {
         super(scene, x, y, key, frame);
         this.scene = scene;
         this.coins = coins;
-        this,id, id;
+        this.id = id;
 
         this.scene.physics.world.enable(this);
 

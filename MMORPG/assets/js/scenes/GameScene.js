@@ -5,7 +5,6 @@ class GameScene extends Phaser.Scene {
 
     init(){
         this.scene.launch('Ui');
-        this.score = 0;
     }
 
     create(){
@@ -29,6 +28,14 @@ class GameScene extends Phaser.Scene {
 
         this.events.on('monsterSpawned', (monster) => {
             this.spawnMonster(monster);
+        });
+
+        this.events.on('chestRemoved', (chestId) => {
+            this.chests.getChildren().forEach((chest) => {
+                if(chest.id === chestId){
+                    chest.makeInactive();
+                }
+            });
         });
 
         this.events.on('monsterRemoved', (monsterId) => {
@@ -130,11 +137,7 @@ class GameScene extends Phaser.Scene {
 
     collectChest(player, chest){
         this.goldPickupAudio.play();
-        this.score += chest.coins;
-        this.events.emit('updateScore', this.score);
-        chest.makeInactive();      
-        
-        this.events.emit('pickupChest', chest.id);
+        this.events.emit('pickupChest', chest.id, player.id);
     }
 
     enemyOverlap(player, enemy){

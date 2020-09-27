@@ -74,9 +74,14 @@ class GameManager{
         }*/
 
     setupEventListener(){
-        this.scene.events.on('pickupChest', (chestId) => {
+        this.scene.events.on('pickupChest', (chestId, playerId) => {
             if(this.chests[chestId]){
+                const { gold } = this.chests[chestId];
+                this.players[playerId].updateGold(gold);
+                this.scene.events.emit('updateScore', this.players[playerId].gold);
+
                 this.spawners[this.chests[chestId].spawnerId].removeObject(chestId);
+                this.scene.events.emit('chestRemoved', chestId);
             }
         });
 
@@ -135,7 +140,7 @@ class GameManager{
     }
 
     deleteChest(chestId){
-        delete this.chest[chestId]
+        delete this.chests[chestId]
     }
 
     addMonster(monsterId, monster){
