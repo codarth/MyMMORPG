@@ -142,7 +142,12 @@ class GameManager{
             config.id = `monster-${key}`;
             config.spawnerType = SpawnerType.MONSTER;
 
-            spawner = new Spawner(config, this.monsterLocations[key], this.addMonster.bind(this), this.deleteMonster.bind(this));
+            spawner = new Spawner(
+                config, 
+                this.monsterLocations[key], 
+                this.addMonster.bind(this), 
+                this.deleteMonster.bind(this),
+                this.moveMonsters.bind(this));
             this.spawners[spawner.id] = spawner;
         });
     }
@@ -169,5 +174,9 @@ class GameManager{
 
     deleteMonster(monsterId){
         delete this.monsters[monsterId];
+    }
+
+    moveMonsters(){
+        this.scene.events.emit('monsterMovement', this.monsters);
     }
 }
