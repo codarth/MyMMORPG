@@ -85,6 +85,8 @@ class GameManager{
                 if(this.monsters[monsterId].health <= 0){
                     this.spawners[this.monsters[monsterId].spawnerId].removeObject(monsterId);
                     this.scene.events.emit('monsterRemoved', monsterId);;
+                } else {
+                    this.scene.events.emit('updateMonsterHealth', monsterId, this.monsters[monsterId].health);;
                 }
             }
         });
