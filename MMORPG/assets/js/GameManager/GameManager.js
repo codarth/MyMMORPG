@@ -98,6 +98,7 @@ class GameManager{
                     this.scene.events.emit('monsterRemoved', monsterId);
 
                     this.players[playerId].updateHealth(3);
+                    this.scene.events.emit('updatePlayerHealth', playerId, this.players[playerId].health);
                 } else {
                     this.players[playerId].updateHealth(-attack);
                     this.scene.events.emit('updatePlayerHealth', playerId, this.players[playerId].health);
