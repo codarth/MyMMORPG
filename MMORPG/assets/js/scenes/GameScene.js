@@ -18,8 +18,8 @@ class GameScene extends Phaser.Scene {
     }
     
     createGameManager(){
-        this.events.on('spawnPlayer', (location) => {
-            this.createPlayer(location);
+        this.events.on('spawnPlayer', (playerObject) => {
+            this.createPlayer(playerObject);
             this.addCollisions();            
         });
 
@@ -62,8 +62,16 @@ class GameScene extends Phaser.Scene {
         this.goldPickupAudio = this.sound.add('goldSound', { loop: false, volume: 1});            
     }
     
-    createPlayer(location){
-        this.player = new PlayerContainer(this, location[0] * 2, location[1] * 2, 'characters', 0);
+    createPlayer(playerObject){
+        this.player = new PlayerContainer(
+            this, 
+            playerObject.x * 2, 
+            playerObject.y * 2, 
+            'characters', 
+            0,
+            playerObject.health,
+            playerObject.maxHealth,
+            playerObject.id);
     }
     
     createGroups(){
@@ -77,7 +85,7 @@ class GameScene extends Phaser.Scene {
             chest = new Chest(this, chestObject.x * 2, chestObject.y * 2, 'items', 0, chestObject.gold, chestObject.id);
             this.chests.add(chest);
         } else {
-            chest.coins = chest.gold;
+            chest.coins = chestObject.gold;
             chest.id = chestObject.id;
             chest.setPosition(chestObject.x * 2, chestObject.y * 2);
             chest.makeActive();

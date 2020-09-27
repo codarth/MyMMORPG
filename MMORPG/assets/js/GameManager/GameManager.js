@@ -6,6 +6,7 @@ class GameManager{
         this.spawners = {};
         this.chests = {};
         this.monsters = {};
+        this.players = {};
 
         this.playerLocations = [];
         this.chestLocations = {};
@@ -19,7 +20,7 @@ class GameManager{
         this.spawnPlayer();
     }
 
-    parseMapDate(){
+    parseMapDate(){     // old map json setup (course map)
         this.mapData.forEach((layer) => {
             if(layer.name === 'player_locations'){
                 layer.objects.forEach((obj) => {
@@ -44,7 +45,7 @@ class GameManager{
             }
         });
     }
-                /*parseMapData() {
+                /*parseMapData() {      // for new map json setup
             this.mapData.forEach((layer) => {
             if (layer.name === 'player_locations') {
                 layer.objects.forEach((obj) => {
@@ -84,7 +85,7 @@ class GameManager{
                 this.monsters[monsterId].loseHealth();
                 if(this.monsters[monsterId].health <= 0){
                     this.spawners[this.monsters[monsterId].spawnerId].removeObject(monsterId);
-                    this.scene.events.emit('monsterRemoved', monsterId);;
+                    this.scene.events.emit('monsterRemoved', monsterId);
                 } else {
                     this.scene.events.emit('updateMonsterHealth', monsterId, this.monsters[monsterId].health);;
                 }
@@ -105,7 +106,11 @@ class GameManager{
             config.id = `chest-${key}`;
             config.spawnerType = SpawnerType.CHEST;
 
-            spawner = new Spawner(config, this.chestLocations[key], this.addChest.bind(this), this.deleteChest.bind(this));
+            spawner = new Spawner(
+                config, 
+                this.chestLocations[key], 
+                this.addChest.bind(this), 
+                this.deleteChest.bind(this));
             this.spawners[spawner.id] = spawner;
         });
 
@@ -119,8 +124,9 @@ class GameManager{
     }
 
     spawnPlayer(){
-        const location = this.playerLocations[Math.floor(Math.random() * this.playerLocations.length)];
-        this.scene.events.emit('spawnPlayer', location);
+        const player = new PlayerModel(this.playerLocations);
+        this.players[player.id] = player;
+        this.scene.events.emit('spawnPlayer', player);
     }
 
     addChest(chestId, chest){
