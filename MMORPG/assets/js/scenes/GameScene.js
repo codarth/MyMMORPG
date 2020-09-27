@@ -54,6 +54,15 @@ class GameScene extends Phaser.Scene {
             });
         });
 
+        this.events.on('updatePlayerHealth', (playerId, health) => {
+            this.player.updateHealth(health);
+        });
+
+        this.events.on('respawnPlayer', (playerObject) => {
+            this.player.respawn(playerObject);
+        });
+    
+
         this.gameManager = new GameManager(this, this.map.map.objects);
         this.gameManager.setup();
 
@@ -140,10 +149,10 @@ class GameScene extends Phaser.Scene {
         this.events.emit('pickupChest', chest.id, player.id);
     }
 
-    enemyOverlap(player, enemy){
+    enemyOverlap(weapon, enemy){
         if(this.player.playerAttacking && !this.player.swordHit){
             this.player.swordHit = true;
-            this.events.emit('monsterAttacked', enemy.id);
+            this.events.emit('monsterAttacked', enemy.id, this.player.id);
         }
     }
 
