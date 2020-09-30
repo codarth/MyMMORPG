@@ -1,0 +1,8 @@
+Terminal 1:
+    Goto: 
+        E:\Program Files\MongoDB\Server\4.4\bin\
+    run:
+        mongod
+Terminal 2:
+    E:\Projects\Zenva\mmorpg\Node.js
+    npm run nodemon
