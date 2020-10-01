@@ -6,7 +6,8 @@
   "scripts": {
     "build": "npx webpack --mode production",
     "start": "npm run build && npx webpack-dev-server --port=8000 --mode development",
-    "lint": "npx eslint src/ --fix"
+    "lint": "npx eslint src/ --fix",
+    "bundle": ".\\bundle"
   },
   "author": "Cody Crawford",
   "license": "ISC",
