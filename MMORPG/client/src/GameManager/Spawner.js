@@ -53,7 +53,7 @@ export default class Spawner {
       this.id,
       randomNumber(0, 20),
       randomNumber(3, 5),
-      randomNumber(1, 3),
+      randomNumber(1, 5),
     );
     this.objectsCreated.push(monster);
     this.addObject(monster.id, monster);
@@ -73,7 +73,7 @@ export default class Spawner {
   }
 
   removeObject(id) {
-    this.objectsCreated = this.objectsCreated.filter((obj) => obj !== id);
+    this.objectsCreated = this.objectsCreated.filter((obj) => obj.id !== id);
     this.deleteObject(id);
   }
 

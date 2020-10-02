@@ -7,7 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
     "nodemon": "npx nodemon index.js --exec babel-node",
-    "mongo": "mongod -- config /usr/local/etc/mongod.conf"
+    "mongo": "mongod -- config /usr/local/etc/mongod.conf",
+    "mongo:up": "docker-compose up -d",
+    "mongo:down": "docker-compose down"
   },
   "author": "Cody Crawford",
   "license": "ISC",
