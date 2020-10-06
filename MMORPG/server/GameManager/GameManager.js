@@ -1,4 +1,6 @@
 import PlayerModel from './PlayerModel';
+import * as levelData from '../public/assets/level/large_level.json';
+
 
 export default class GameManager {
   constructor(io) {
@@ -8,7 +10,7 @@ export default class GameManager {
     this.monsters = {};
     this.players = {};
 
-    this.playerLocations = [[50, 50], [100, 100]];
+    this.playerLocations = [];
     this.chestLocations = {};
     this.monsterLocations = {};
   }
@@ -19,7 +21,32 @@ export default class GameManager {
     this.setupSpawner();
   }
 
-  parseMapDate() { }
+  parseMapDate() {
+    this.levelData = levelData;
+    this.levelData.layers.forEach((layer) => {
+      if(layer.name === 'player_locations' ) {
+        layer.objects.forEach((obj) => {
+          this.playerLocations.push([obj.x, obj.y]);
+        });
+      } else if (layer.name === 'monster_locations') {
+        layer.objects.forEach((obj) => {
+          if (this.monsterLocations[obj.properties.spawner]) {
+            this.monsterLocations[obj.properties.spawner].push([obj.x, obj.y]);
+          }else {
+            this.monsterLocations[obj.properties.spawner] = [[obj.x, obj.y]];
+          }
+        });
+      } else if (layer.name === 'chest_locations') {
+        layer.objects.forEach((obj) => {
+          if (this.chestLocations[obj.properties.spawner]) {
+            this.chestLocations[obj.properties.spawner].push([obj.x, obj.y]);
+          }else {
+            this.chestLocations[obj.properties.spawner] = [[obj.x, obj.y]];
+          }
+        });
+      }
+    });
+   }
 
   setupEventListeners() {
     this.io.on('connection', (socket) => {
