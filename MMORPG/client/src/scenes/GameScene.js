@@ -12,6 +12,37 @@ export default class GameScene extends Phaser.Scene {
 
   init() {
     this.scene.launch('Ui');
+
+    this.socket = this.sys.game.globals.socket;
+
+    this.listenForSocketEvents();
+  }
+
+  listenForSocketEvents() {
+    this.socket.on('currentPlayers', (players) => {
+      console.log('currentPlayers');
+      console.log(players);
+      Object.keys(players).forEach((id) => {
+        if (players[id].id === this.socket.id) {
+          this.createPlayer(players[id], true);
+          this.addCollisions();
+        } else {
+          this.createPlayer(players[id], false);
+        }
+      });
+    });
+
+    this.socket.on('currentMonsters', (monsters) => {
+      console.log('currentMonsters');
+      console.log(monsters);
+    });
+    this.socket.on('currentChests', (chests) => {
+      console.log('currentChests');
+      console.log(chests);
+    });
+    this.socket.on('spawnPlayer', (player) => {
+      this.createPlayer(player, false);
+    });
   }
 
   create() {
@@ -20,14 +51,16 @@ export default class GameScene extends Phaser.Scene {
     this.createGroups();
     this.createInput();
 
-    this.createGameManager();
+    // this.createGameManager();
+
+    this.socket.emit('newPlayer', { test: 1234 });
   }
 
   createGameManager() {
-    this.events.on('spawnPlayer', (playerObject) => {
-      this.createPlayer(playerObject);
-      this.addCollisions();
-    });
+    // this.events.on('spawnPlayer', (playerObject) => {
+    //   this.createPlayer(playerObject);
+    //   this.addCollisions();
+    // });
 
     this.events.on('chestSpawned', (chest) => {
       this.spawnChest(chest);
@@ -102,8 +135,8 @@ export default class GameScene extends Phaser.Scene {
     this.playerDeathAudio = this.sound.add('playerDeath', { loop: false, volume: 1 });
   }
 
-  createPlayer(playerObject) {
-    this.player = new PlayerContainer(
+  createPlayer(playerObject, mainPlayer) {
+    const newPlayerObject = new PlayerContainer(
       this,
       playerObject.x * 2,
       playerObject.y * 2,
@@ -113,13 +146,21 @@ export default class GameScene extends Phaser.Scene {
       playerObject.maxHealth,
       playerObject.id,
       this.playerAttackAudio,
+      mainPlayer,
     );
+
+    if (!mainPlayer) {
+      this.otherPlayers.add(newPlayerObject);
+    } else {
+      this.player = newPlayerObject;
+    }
   }
 
   createGroups() {
     this.chests = this.physics.add.group();
     this.monsters = this.physics.add.group();
     this.monsters.runChildUpdate = true;
+    this.otherPlayers = this.physics.add.group();
   }
 
   spawnChest(chestObject) {

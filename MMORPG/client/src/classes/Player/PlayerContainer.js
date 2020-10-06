@@ -3,7 +3,7 @@ import Player from './Player';
 import Direction from '../../utils/direction';
 
 export default class PlayerContainer extends Phaser.GameObjects.Container {
-  constructor(scene, x, y, key, frame, health, maxHealth, id, attackAudio) {
+  constructor(scene, x, y, key, frame, health, maxHealth, id, attackAudio, mainPlayer) {
     super(scene, x, y);
     this.scene = scene;
     this.velocity = 160;
@@ -15,12 +15,16 @@ export default class PlayerContainer extends Phaser.GameObjects.Container {
     this.maxHealth = maxHealth;
     this.id = id;
     this.attackAudio = attackAudio;
+    this.mainPlayer = mainPlayer;
 
     this.setSize(64, 64);
     this.scene.physics.world.enable(this);
     this.body.setCollideWorldBounds(true);
     this.scene.add.existing(this);
+
+    if (this.mainPlayer){
     this.scene.cameras.main.startFollow(this);
+    }
 
     this.player = new Player(this.scene, 0, 0, key, frame);
     this.add(this.player);
