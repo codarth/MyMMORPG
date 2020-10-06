@@ -43,6 +43,22 @@ export default class GameScene extends Phaser.Scene {
     this.socket.on('spawnPlayer', (player) => {
       this.createPlayer(player, false);
     });
+
+    this.socket.on('playerMoved', (player) => {
+      this.otherPlayers.getChildren().forEach((otherPlayer) => {
+        if (player.id === otherPlayer.id) {
+          otherPlayer.flipX = player.flipX;
+          otherPlayer.setPosition(player.x, player.y);
+          otherPlayer.updateHealthBar();
+          otherPlayer.updateFlipX();
+          otherPlayer.playerAttacking = player.playerAttacking;
+          otherPlayer.currentDirection = player.currentDirection;
+          if (player.playerAttacking) {
+            otherPlayer.attack();
+          }
+        }
+      });
+    });
   }
 
   create() {
@@ -125,6 +141,27 @@ export default class GameScene extends Phaser.Scene {
     if (this.player) {
       this.player.update(this.cursors);
     }
+
+    if (this.player) {
+      const {
+        x, y, flipX, playerAttacking, currentDirection,
+      } = this.player;
+      if (this.player.oldPosition && (x !== this.player.oldPosition.x
+        || y !== this.player.oldPosition.y
+        || flipX !== this.player.oldPosition.flipX
+        || playerAttacking !== this.player.oldPosition.playerAttacking)) {
+        this.socket.emit('playerMovement', {
+          x, y, flipX, playerAttacking, currentDirection,
+        });
+      }
+
+      this.player.oldPosition = {
+        x: this.player.x,
+        y: this.player.y,
+        flipX: this.player.flipX,
+        playerAttacking: this.player.playerAttacking,
+      };
+    }
   }
 
   createAudio() {
@@ -161,6 +198,7 @@ export default class GameScene extends Phaser.Scene {
     this.monsters = this.physics.add.group();
     this.monsters.runChildUpdate = true;
     this.otherPlayers = this.physics.add.group();
+    this.otherPlayers.runChildUpdate = true;
   }
 
   spawnChest(chestObject) {

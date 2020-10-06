@@ -38,6 +38,18 @@ export default class GameManager {
         socket.broadcast.emit('spawnPlayer', this.players[socket.id]);
       });
 
+      socket.on('playerMovement', (playerData) => {
+          if (this.players[socket.id]) {
+            this.players[socket.id].x = playerData.x;
+            this.players[socket.id].y = playerData.y;
+            this.players[socket.id].flipX = playerData.flipX;
+            this.players[socket.id].playerAttacking = playerData.playerAttacking;
+            this.players[socket.id].currentDirection = playerData.currentDirection;
+
+            this.io.emit('playerMoved', this.players[socket.id]);
+        }
+      });
+
       console.log('player connected');
       console.log(socket.id);
     });
