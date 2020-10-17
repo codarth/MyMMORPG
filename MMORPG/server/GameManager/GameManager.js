@@ -1,3 +1,4 @@
+import jwt from 'jsonwebtoken';
 import PlayerModel from './PlayerModel';
 import * as levelData from '../public/assets/level/large_level.json';
 import Spawner from './Spawner';
@@ -56,14 +57,23 @@ export default class GameManager {
         this.io.emit('disconnect', socket.id);
       });
 
-      socket.on('newPlayer', () => {
-        this.spawnPlayer(socket.id);
+      socket.on('newPlayer', (token) => {
+        try {
+          const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        socket.emit('currentPlayers', this.players);
-        socket.emit('currentMonsters', this.monsters);
-        socket.emit('currentChests', this.chests);
+          const { name } = decoded.user;
 
-        socket.broadcast.emit('spawnPlayer', this.players[socket.id]);
+          this.spawnPlayer(socket.id, name);
+
+          socket.emit('currentPlayers', this.players);
+          socket.emit('currentMonsters', this.monsters);
+          socket.emit('currentChests', this.chests);
+
+          socket.broadcast.emit('spawnPlayer', this.players[socket.id]);
+        } catch (error) {
+          console.log(error.message);
+          socket.emit('invalidToken');
+        }
       });
 
       socket.on('pickupChest', (chestId) => {
@@ -181,8 +191,8 @@ export default class GameManager {
     });
   }
 
-  spawnPlayer(playerId) {
-    const player = new PlayerModel(playerId, this.playerLocations, this.players);
+  spawnPlayer(playerId, name) {
+    const player = new PlayerModel(playerId, this.playerLocations, this.players, name);
     this.players[playerId] = player;
   }
 

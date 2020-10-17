@@ -1,6 +1,9 @@
 to get service running:
-    & 'E:\Program Files\MongoDB\Server\4.4\bin\mongod'
+	./server
+	npm run mongo:up
+	npm run nodemon
 
 to get server running:
-    npm run nodemon
+	./client
+	npm run start 
 
