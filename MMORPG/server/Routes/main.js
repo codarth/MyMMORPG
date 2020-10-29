@@ -52,7 +52,7 @@ router.post('/login', async (request, response, next) => {
           refreshToken,
           email: user.email,
           _id: user._id,
-          name: user.name,
+          name: user.username,
         };
 
         // Send token to user

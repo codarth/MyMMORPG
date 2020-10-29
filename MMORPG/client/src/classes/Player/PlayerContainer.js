@@ -3,7 +3,7 @@ import Player from './Player';
 import Direction from '../../utils/direction';
 
 export default class PlayerContainer extends Phaser.GameObjects.Container {
-  constructor(scene, x, y, key, frame, health, maxHealth, id, attackAudio, mainPlayer) {
+  constructor(scene, x, y, key, frame, health, maxHealth, id, attackAudio, mainPlayer, playerName) {
     super(scene, x, y);
     this.scene = scene;
     this.velocity = 160;
@@ -16,6 +16,7 @@ export default class PlayerContainer extends Phaser.GameObjects.Container {
     this.id = id;
     this.attackAudio = attackAudio;
     this.mainPlayer = mainPlayer;
+    this.playerName = playerName;
 
     this.setSize(64, 64);
     this.scene.physics.world.enable(this);
@@ -37,6 +38,23 @@ export default class PlayerContainer extends Phaser.GameObjects.Container {
     this.weapon.alpha = 0;
 
     this.createHealthBar();
+    this.createPlayerName();
+  }
+
+  createPlayerName() {
+    this.playerNameText = this.scene.make.text({
+      x: this.x - 32,
+      y: this.y - 60,
+      text: this.playerName,
+      style: {
+        font: '14px monospace',
+        fill: '#ffffff',
+      },
+    });
+  }
+
+  updatePlayerNamePosition() {
+    this.playerNameText.setPosition(this.x - 32, this.y - 60);
   }
 
   createHealthBar() {
@@ -61,6 +79,7 @@ export default class PlayerContainer extends Phaser.GameObjects.Container {
     this.health = playerObjest.health;
     this.setPosition(playerObjest.x, playerObjest.y);
     this.updateHealthBar();
+    this.updatePlayerNamePosition();
   }
 
   update(cursors) {
@@ -123,6 +142,7 @@ export default class PlayerContainer extends Phaser.GameObjects.Container {
     }
 
     this.updateHealthBar();
+    this.updatePlayerNamePosition();
   }
 
   updateFlipX() {
@@ -142,6 +162,7 @@ export default class PlayerContainer extends Phaser.GameObjects.Container {
 
   cleanUp() {
     this.healthBar.destroy();
+    this.playerNameText.destroy();
     this.player.destroy();
     this.destroy();
   }

@@ -4,18 +4,21 @@ import Chest from '../classes/Chest';
 import Monster from '../classes/Monster';
 import GameMap from '../classes/GameMap';
 import { getCookie } from '../utils/utils';
+import DialogWindow from '../classes/DialogWindow';
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
     super('Game');
   }
 
-  init() {
+  init(data) {
     this.scene.launch('Ui');
 
     this.socket = this.sys.game.globals.socket;
 
     this.listenForSocketEvents();
+
+    this.selectedCharacter = data.selectedCharacter || 0;
   }
 
   listenForSocketEvents() {
@@ -149,6 +152,10 @@ export default class GameScene extends Phaser.Scene {
       window.alert('Token is no longer valid. Please login again');
       window.location.reload();
     });
+
+    this.socket.on('newMessage', (messageObject) => {
+      this.dialogWindow.AddNewMessage(messageObject);
+    });
   }
 
   create() {
@@ -157,10 +164,47 @@ export default class GameScene extends Phaser.Scene {
     this.createGroups();
     this.createInput();
 
-    this.socket.emit('newPlayer', getCookie('jwt'));
+    this.dialogWindow = new DialogWindow(this, {
+      x: this.scale.width,
+    });
+
+    this.socket.emit('newPlayer', getCookie('jwt'), this.selectedCharacter);
+
+    this.scale.on('resize', this.resize, this);
+    this.resize({ height: this.scale.height, width: this.scale.width });
+
+    this.keyDownEventListener();
+    this.input.on('pointerdown', () => {
+      document.getElementById('chatInput').blur();
+    });
+  }
+
+  keyDownEventListener() {
+    this.inputMessageField = document.getElementById('chatInput');
+    window.addEventListener('keydown', (event) => {
+      if (event.which === 13) { // enter key
+        this.sendMessage();
+      } else if (event.which === 32) { // space key
+        if (document.activeElement === this.inputMessageField) {
+          this.inputMessageField.value = `${this.inputMessageField.value} `;
+        }
+      }
+    });
+  }
+
+  sendMessage() {
+    if (this.inputMessageField) {
+      const message = this.inputMessageField.value;
+      if (message) {
+        this.inputMessageField.value = '';
+        this.socket.emit('sendMessage', message, getCookie('jwt'));
+      }
+    }
   }
 
   update() {
+    this.dialogWindow.update();
+
     if (this.player) {
       this.player.update(this.cursors);
     }
@@ -201,12 +245,13 @@ export default class GameScene extends Phaser.Scene {
       playerObject.x * 2,
       playerObject.y * 2,
       'characters',
-      0,
+      playerObject.frame,
       playerObject.health,
       playerObject.maxHealth,
       playerObject.id,
       this.playerAttackAudio,
       mainPlayer,
+      playerObject.playerName,
     );
 
     if (!mainPlayer) {
@@ -301,5 +346,12 @@ export default class GameScene extends Phaser.Scene {
 
   createMap() {
     this.gameMap = new GameMap(this, 'map', 'background', 'background', 'blocked');
+  }
+
+  resize(gameSize) {
+    const { width, height } = gameSize;
+
+    this.cameras.resize(width, height);
+    this.dialogWindow.resize(gameSize);
   }
 }

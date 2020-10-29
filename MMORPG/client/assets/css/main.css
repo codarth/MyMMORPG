@@ -1,8 +1,12 @@
+html, body {
+    margin: 0;
+}
+
 .input-div {
     width: 100%;
     position: fixed;
-    top: 140px;
-    left: 300px;
+    bottom: calc(55%);
+    text-align: center;
 }
 
 .form-label {
@@ -13,4 +17,37 @@
 .login-input {
     width: 200px;
     height: 20px;
+}
+
+@media screen and (max-height: 600px) {
+    .input-div {
+        bottom: calc(45%);
+    }
+}
+
+.chat-input {
+    position: absolute;
+    height: 30px;
+    font-size: 16px;
+    color: black;
+    font-style: italic;
+    bottom: 0px;
+}
+
+.chat-invisible {
+    opacity: 0;
+}
+
+.chat-visible {
+    opacity: 0.4;
+}
+
+.chat-bottom {
+    left: px;
+    width: 100%;
+}
+
+.chat-sidebar {
+    right: 0px;
+    width: 300px;
 }

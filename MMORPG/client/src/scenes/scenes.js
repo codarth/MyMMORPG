@@ -6,6 +6,7 @@ import LoginScene from './LoginScene';
 import SignUpScene from './SignUpScene';
 import ForgotPasswordScene from './ForgotPasswordScene';
 import ResetPasswordScene from './ResetPasswordScene';
+import CharacterSelectionScene from './CharacterSelectionScene';
 
 export default [
   BootScene,
@@ -16,4 +17,5 @@ export default [
   SignUpScene,
   ForgotPasswordScene,
   ResetPasswordScene,
+  CharacterSelectionScene,
 ];

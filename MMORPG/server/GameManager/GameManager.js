@@ -3,6 +3,7 @@ import PlayerModel from './PlayerModel';
 import * as levelData from '../public/assets/level/large_level.json';
 import Spawner from './Spawner';
 import { SpawnerType } from './utils';
+import ChatModel from '../models/ChatModel';
 
 export default class GameManager {
   constructor(io) {
@@ -57,13 +58,30 @@ export default class GameManager {
         this.io.emit('disconnect', socket.id);
       });
 
-      socket.on('newPlayer', (token) => {
+      socket.on('sendMessage', async (message, token) => {
         try {
           const decoded = jwt.verify(token, process.env.JWT_SECRET);
+          const { name, email } = decoded.user;
 
+          await ChatModel.create({ email, message });
+
+          this.io.emit('newMessage', {
+            message,
+            name,
+            frame: this.players[socket.id].frame,
+          });
+        } catch (error) {
+          console.log(error.message);
+          socket.emit('invalidToken');
+        }
+      });
+
+      socket.on('newPlayer', (token, frame) => {
+        try {
+          const decoded = jwt.verify(token, process.env.JWT_SECRET);
           const { name } = decoded.user;
 
-          this.spawnPlayer(socket.id, name);
+          this.spawnPlayer(socket.id, name, frame);
 
           socket.emit('currentPlayers', this.players);
           socket.emit('currentMonsters', this.monsters);
@@ -191,8 +209,8 @@ export default class GameManager {
     });
   }
 
-  spawnPlayer(playerId, name) {
-    const player = new PlayerModel(playerId, this.playerLocations, this.players, name);
+  spawnPlayer(playerId, name, frame) {
+    const player = new PlayerModel(playerId, this.playerLocations, this.players, name, frame);
     this.players[playerId] = player;
   }
 
