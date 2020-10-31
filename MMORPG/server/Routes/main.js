@@ -53,11 +53,11 @@ router.post('/login', async (request, response, next) => {
           { user: body }, process.env.JWT_REFRESH_SECRET, { expiresIn: 86400 },
         );
 
-        // Store tokens in cookie
+        // store tokens in cookie
         response.cookie('jwt', token);
         response.cookie('refreshJwt', refreshToken);
 
-        // Store tokens in memory
+        // store tokens in memory
         tokenList[refreshToken] = {
           token,
           refreshToken,
@@ -66,7 +66,7 @@ router.post('/login', async (request, response, next) => {
           name: user.username,
         };
 
-        // Send token to user
+        // send the token to the user
         return response.status(200).json({ token, refreshToken, status: 200 });
       });
     } catch (err) {
@@ -90,12 +90,13 @@ router.post('/token', (request, response) => {
     };
     const token = jwt.sign({ user: body }, process.env.JWT_SECRET, { expiresIn: 300 });
 
-    // Update JWT
+    // update jwt
     response.cookie('jwt', token);
     tokenList[refreshToken].token = token;
+
     response.status(200).json({ token, status: 200 });
   } else {
-    response.status(401).json({ message: 'nope, unauthorized', status: 401 });
+    response.status(401).json({ message: 'unauthorized', status: 401 });
   }
 });
 

@@ -28,6 +28,7 @@ module.exports = {
       CANVAS_RENDERER: JSON.stringify(true),
       WEBGL_RENDERER: JSON.stringify(true),
       SERVER_URL: JSON.stringify(process.env.SERVER_URL),
+      BYPASS_AUTH: JSON.stringify(process.env.BYPASS_AUTH),
     }),
   ],
 };

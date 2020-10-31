@@ -1,6 +1,6 @@
 import * as Phaser from 'phaser';
-import { getParam } from '../utils/utils';
 import UiButton from '../classes/UiButton';
+import { getParam } from '../utils/utils';
 
 export default class TitleScene extends Phaser.Scene {
   constructor() {
@@ -8,10 +8,11 @@ export default class TitleScene extends Phaser.Scene {
   }
 
   create() {
-    // Create title text
-    this.TitleText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'MMORPG', { fontSize: '128px', fill: '#fff' });
-    this.TitleText.setOrigin(0.5);
+    // create title text
+    this.titleText = this.add.text(this.scale.width / 2, this.scale.height / 2, 'Uncle Toadys MMORPG', { fontSize: '128px', fill: '#fff' });
+    this.titleText.setOrigin(0.5);
 
+    // create a login button
     this.loginButton = new UiButton(
       this,
       this.scale.width / 2,
@@ -21,10 +22,12 @@ export default class TitleScene extends Phaser.Scene {
       'Login',
       this.startScene.bind(this, 'Login'),
     );
+
+    // create a sign up button
     this.signUpButton = new UiButton(
       this,
       this.scale.width / 2,
-      this.scale.height * 0.8,
+      this.scale.height * 0.75,
       'button2',
       'button1',
       'Sign Up',
@@ -34,10 +37,12 @@ export default class TitleScene extends Phaser.Scene {
     const resetPasswordSceneCheck = getParam('scene');
     if (resetPasswordSceneCheck && resetPasswordSceneCheck === 'resetPassword') {
       this.scale.removeListener('resize', this.resize);
-      this.startScene('ResetPassword');
+      this.scene.start('ResetPassword');
     }
 
+    // handle game resize
     this.scale.on('resize', this.resize, this);
+    // resize our game
     this.resize({ height: this.scale.height, width: this.scale.width });
   }
 
@@ -52,19 +57,19 @@ export default class TitleScene extends Phaser.Scene {
     this.cameras.resize(width, height);
 
     if (width < 1000) {
-      this.TitleText.setFontSize('64px');
+      this.titleText.setFontSize('64px');
     } else {
-      this.TitleText.setFontSize('128px');
+      this.titleText.setFontSize('128px');
     }
 
     if (height < 700) {
-      this.TitleText.setPosition(width / 2, height * 0.4);
+      this.titleText.setPosition(width / 2, height * 0.4);
       this.loginButton.setPosition(width / 2, height * 0.55);
       this.signUpButton.setPosition(width / 2, height * 0.7);
       this.loginButton.setScale(0.7);
       this.signUpButton.setScale(0.7);
     } else {
-      this.TitleText.setPosition(width / 2, height / 2);
+      this.titleText.setPosition(width / 2, height / 2);
       this.loginButton.setPosition(width / 2, height * 0.65);
       this.signUpButton.setPosition(width / 2, height * 0.75);
       this.loginButton.setScale(1);

@@ -9,49 +9,45 @@ export default class ResetPasswordScene extends CredentialsBaseScene {
   }
 
   create() {
-    this.createUi(
-      'Update Password', this.updatePassword.bind(this),
-      'Back', this.startScene.bind(this, 'Title'),
-    );
-
-    this.createVerifiedPasswordInput();
+    this.createUi('Update Password', this.updatePassword.bind(this), 'Back', this.startScene.bind(this, 'Title'));
+    this.createVerifyPasswordInput();
   }
 
-  createVerifiedPasswordInput() {
-    this.verifiedPasswordLabel = createLabel('verifiedPassword', 'Verify Password:', 'form-label');
-    this.verifiedPasswordInput = createInputField('password', 'verifiedPassword', 'verifyPassword', 'login-input', 'Verify Password');
+  createVerifyPasswordInput() {
+    this.verifyPasswordLabel = createLabel('verifiedPassword', 'Verify Password:', 'form-label');
+    this.verifyPasswordInput = createInputField('password', 'verifiedPassword', 'verifiedPassword', 'login-input');
 
     this.div.append(createBrElement());
     this.div.append(createBrElement());
-    this.div.append(this.verifiedPasswordLabel);
+    this.div.append(this.verifyPasswordLabel);
     this.div.append(createBrElement());
-    this.div.append(this.verifiedPasswordInput);
+    this.div.append(this.verifyPasswordInput);
   }
 
   updatePassword() {
     const token = getParam('token');
-    const loginValue = this.emailInput.value;
+    const loginValue = this.loginInput.value;
     const passwordValue = this.passwordInput.value;
-    const verifiedPasswordValue = this.verifiedPasswordInput.value;
+    const verifyPasswordValue = this.verifyPasswordInput.value;
 
-    if (loginValue
-        && passwordValue && verifiedPasswordValue
-        && passwordValue === verifiedPasswordValue) {
-      postData(`${SERVER_URL}/resetpassword`, {
-        token, email: loginValue, password: passwordValue, verifiedpassword: verifiedPasswordValue,
-      }).then((response) => {
-        console.log(response.message);
-        if (response.status === 200) {
-          this.startScene('Title');
-        } else {
+    if (loginValue && passwordValue && verifyPasswordValue
+      && passwordValue === verifyPasswordValue) {
+      postData(`${SERVER_URL}/reset-password`, {
+        token, password: passwordValue, verifiedPassword: verifyPasswordValue, email: loginValue,
+      })
+        .then((response) => {
+          console.log(response.message);
           window.alert(response.message);
-        }
-      }).catch((error) => {
-        console.log(error.message);
-        window.alert('We encountered an error.');
-      });
+          if (response.status === 200) {
+            this.startScene('Title');
+          }
+        })
+        .catch((error) => {
+          console.log(error.message);
+          window.alert('we encountered an error');
+        });
     } else {
-      window.alert('Passwords must match.');
+      window.alert('all fields must be filled out and the passwords must match');
     }
   }
 }

@@ -6,19 +6,17 @@ export default class CharacterSelectionScene extends Phaser.Scene {
   }
 
   create() {
-    // Create title text
-    this.TitleText = this.add.text(this.scale.width / 2, this.scale.height * 0.1, 'Uncle Toady\'s MMORPG', { fontSize: '64px', fill: '#fff' });
-    this.TitleText.setOrigin(0.5);
+    // create title text
+    this.titleText = this.add.text(this.scale.width / 2, this.scale.height * 0.1, 'Uncle Toady\'s MMORPG', { fontSize: '64px', fill: '#fff' });
+    this.titleText.setOrigin(0.5);
 
+    // create sprites
     this.createCharacters();
 
+    // handle game resize
     this.scale.on('resize', this.resize, this);
+    // resize our game
     this.resize({ height: this.scale.height, width: this.scale.width });
-  }
-
-  startScene(targetScene) {
-    this.scale.removeListener('resize', this.resize);
-    this.scene.start(targetScene);
   }
 
   createCharacters() {
@@ -33,24 +31,24 @@ export default class CharacterSelectionScene extends Phaser.Scene {
         character.characterId = i;
         character.setScale(2.5);
         character.setAlpha(0.4);
-        character.on('pointerover', this.pointerOver);
-        character.on('pointerout', this.pointerOut);
-        character.on('pointerdown', this.pointerDown.bind(this, character));
+        character.on('pointerover', this.pointerover);
+        character.on('pointerout', this.pointerout);
+        character.on('pointerdown', this.pointerdown.bind(this, character));
         this.group.add(character);
         x += 96;
       }
     }
   }
 
-  pointerOver() {
+  pointerover() {
     this.setAlpha(1);
   }
 
-  pointerOut() {
+  pointerout() {
     this.setAlpha(0.4);
   }
 
-  pointerDown(character) {
+  pointerdown(character) {
     this.scale.removeListener('resize', this.resize);
     this.scene.start('Game', { selectedCharacter: character.characterId });
   }
@@ -61,12 +59,10 @@ export default class CharacterSelectionScene extends Phaser.Scene {
     this.cameras.resize(width, height);
 
     if (width < 1000) {
-      this.TitleText.setFontSize('64px');
+      this.titleText.setFontSize('64px');
     } else {
-      this.TitleText.setFontSize('128px');
+      this.titleText.setFontSize('128px');
     }
-
-    this.TitleText.setPosition(width / 2, height * 0.1);
 
     let yDiff = 0;
     let xDiff = 0;
@@ -99,5 +95,7 @@ export default class CharacterSelectionScene extends Phaser.Scene {
         child.setScale(2.5);
       }
     });
+
+    this.titleText.setPosition(width / 2, height * 0.1);
   }
 }

@@ -39,7 +39,7 @@ passport.use('login', new localStrategy.Strategy({
   }
 }));
 
-// Verify jwt token
+// verify jwt token
 passport.use(new jwtStrategy.Strategy({
   secretOrKey: process.env.JWT_SECRET,
   jwtFromRequest: (request) => {

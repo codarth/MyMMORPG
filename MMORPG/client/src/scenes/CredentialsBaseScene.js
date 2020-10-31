@@ -4,11 +4,11 @@ import {
   createDiv, createLabel, createInputField, createBrElement,
 } from '../utils/utils';
 
-export default class CredentialsBaseSCene extends Phaser.Scene {
+export default class CredentialsBaseScene extends Phaser.Scene {
   createUi(btn1Text, btn1Target, btn2Text, btn2Target, btn3Text, btn3Target) {
-    // Create title text
-    this.TitleText = this.add.text(this.scale.width / 2, this.scale.height * 0.1, 'Uncle Toady\'s MMORPG', { fontSize: '64px', fill: '#fff' });
-    this.TitleText.setOrigin(0.5);
+    // create title text
+    this.titleText = this.add.text(this.scale.width / 2, this.scale.height * 0.1, 'Uncle Toady\'s MMORPG', { fontSize: '64px', fill: '#fff' });
+    this.titleText.setOrigin(0.5);
 
     this.button1 = new UiButton(
       this,
@@ -34,29 +34,32 @@ export default class CredentialsBaseSCene extends Phaser.Scene {
       this.button3 = new UiButton(
         this,
         this.scale.width / 2,
-        this.scale.height * 0.90,
+        this.scale.height * 0.9,
         'button2',
         'button1',
         btn3Text,
         btn3Target,
       );
     }
+
     this.createInput();
 
+    // handle game resize
     this.scale.on('resize', this.resize, this);
+    // resize our game
     this.resize({ height: this.scale.height, width: this.scale.width });
   }
 
   createInput() {
     this.div = createDiv('input-div');
-    this.emailLabel = createLabel('login', 'Email:', 'form-label');
-    this.emailInput = createInputField('text', 'login', 'login', 'login-input', 'Email Address');
+    this.loginLabel = createLabel('login', 'Email:', 'form-label');
+    this.loginInput = createInputField('text', 'login', 'login', 'login-input', 'Email Address');
     this.passwordLabel = createLabel('password', 'Password:', 'form-label');
     this.passwordInput = createInputField('password', 'password', 'password', 'login-input');
 
-    this.div.append(this.emailLabel);
+    this.div.append(this.loginLabel);
     this.div.append(createBrElement());
-    this.div.append(this.emailInput);
+    this.div.append(this.loginInput);
     this.div.append(createBrElement());
     this.div.append(createBrElement());
     this.div.append(this.passwordLabel);
@@ -79,12 +82,12 @@ export default class CredentialsBaseSCene extends Phaser.Scene {
     this.cameras.resize(width, height);
 
     if (width < 1000) {
-      this.TitleText.setFontSize('64px');
+      this.titleText.setFontSize('64px');
     } else {
-      this.TitleText.setFontSize('128px');
+      this.titleText.setFontSize('128px');
     }
 
-    this.TitleText.setPosition(width / 2, height * 0.1);
+    this.titleText.setPosition(width / 2, height * 0.1);
 
     if (height < 700) {
       this.button1.setPosition(width / 2, height * 0.68);

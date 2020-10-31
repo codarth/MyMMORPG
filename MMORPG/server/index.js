@@ -12,12 +12,11 @@ import passwordRoutes from './Routes/password';
 import secureRoutes from './Routes/secure';
 import GameManager from './GameManager/GameManager';
 
-// Setup mongo connection
+// setup mongo connection
 const uri = process.env.MONGO_CONNECTION_URL;
 const mongoConfig = {
   useNewUrlParser: true,
   useCreateIndex: true,
-  // useUnifiedTopology: true,
 };
 if (process.env.MONGO_USER_NAME && process.env.MONGO_PASSWORD) {
   mongoConfig.auth = { authSource: 'admin' };
@@ -66,7 +65,7 @@ app.use('/', routes);
 app.use('/', passwordRoutes);
 app.use('/', passport.authenticate('jwt', { session: false }), secureRoutes);
 
-// handle all other routes
+// catch all other routes
 app.use((request, response) => {
   response.status(404).json({ message: '404 - Not Found', status: 404 });
 });

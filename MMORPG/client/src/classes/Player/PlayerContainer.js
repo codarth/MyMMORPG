@@ -5,8 +5,8 @@ import Direction from '../../utils/direction';
 export default class PlayerContainer extends Phaser.GameObjects.Container {
   constructor(scene, x, y, key, frame, health, maxHealth, id, attackAudio, mainPlayer, playerName) {
     super(scene, x, y);
-    this.scene = scene;
-    this.velocity = 160;
+    this.scene = scene; // the scene this container will be added to
+    this.velocity = 160; // the velocity when moving our player
     this.currentDirection = Direction.RIGHT;
     this.playerAttacking = false;
     this.flipX = true;
@@ -18,18 +18,25 @@ export default class PlayerContainer extends Phaser.GameObjects.Container {
     this.mainPlayer = mainPlayer;
     this.playerName = playerName;
 
+    // set a size on the container
     this.setSize(64, 64);
+    // enable physics
     this.scene.physics.world.enable(this);
+    // collide with world bounds
     this.body.setCollideWorldBounds(true);
+    // add the player container to our existing scene
     this.scene.add.existing(this);
 
     if (this.mainPlayer) {
+      // have the camera follow the player
       this.scene.cameras.main.startFollow(this);
     }
 
+    // create the player
     this.player = new Player(this.scene, 0, 0, key, frame);
     this.add(this.player);
 
+    // create the weapon game object
     this.weapon = this.scene.add.image(40, 0, 'items', 4);
     this.scene.add.existing(this.weapon);
     this.weapon.setScale(1.5);
@@ -37,7 +44,10 @@ export default class PlayerContainer extends Phaser.GameObjects.Container {
     this.add(this.weapon);
     this.weapon.alpha = 0;
 
+    // create the player healthbar
     this.createHealthBar();
+
+    // create the player name
     this.createPlayerName();
   }
 
@@ -75,15 +85,16 @@ export default class PlayerContainer extends Phaser.GameObjects.Container {
     this.updateHealthBar();
   }
 
-  respawn(playerObjest) {
-    this.health = playerObjest.health;
-    this.setPosition(playerObjest.x, playerObjest.y);
+  respawn(playerObject) {
+    this.health = playerObject.health;
+    this.setPosition(playerObject.x, playerObject.y);
     this.updateHealthBar();
     this.updatePlayerNamePosition();
   }
 
   update(cursors) {
     this.body.setVelocity(0);
+
     if (this.mainPlayer) {
       if (cursors.left.isDown) {
         this.body.setVelocityX(-this.velocity);

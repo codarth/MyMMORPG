@@ -17,7 +17,7 @@ const smtpTransport = nodemailer.createTransport({
   },
 });
 
-const handleBarsOptions = {
+const handlebarsOptions = {
   viewEngine: {
     extName: '.hbs',
     defaultLayout: null,
@@ -28,19 +28,19 @@ const handleBarsOptions = {
   extName: '.html',
 };
 
-smtpTransport.use('compile', hbs(handleBarsOptions));
+smtpTransport.use('compile', hbs(handlebarsOptions));
 
 const router = express.Router();
 
-router.post('/forgotpassword', async (request, response) => {
+router.post('/forgot-password', async (request, response) => {
   const userEmail = request.body.email;
   const user = await UserModel.findOne({ email: userEmail });
   if (!user) {
-    response.status(400).json({ message: 'Invalid Email', status: 400 });
+    response.status(400).json({ message: 'invalid email', status: 400 });
     return;
   }
 
-  // Create user token
+  // create user token
   const buffer = crypto.randomBytes(20);
   const token = buffer.toString('hex');
 
@@ -49,23 +49,23 @@ router.post('/forgotpassword', async (request, response) => {
     { _id: user._id }, { resetToken: token, resetTokenExp: Date.now() + 600000 },
   );
 
-  // Send user password reset email
+  // send user password reset email
   const emailOptions = {
     to: userEmail,
     from: email,
-    template: 'forgotpassword',
-    subject: 'Zenva MMO password Reset',
+    template: 'forgot-password',
+    subject: 'Uncle Toadys MMO Password Reset',
     context: {
-      name: 'jo',
+      name: 'joe',
       url: `http://localhost:${process.env.PORT || 3000}/?token=${token}&scene=resetPassword`,
     },
   };
   await smtpTransport.sendMail(emailOptions);
 
-  response.status(200).json({ message: 'An Email has been sent to your email address. Password link is only good for 10 minutes.', status: 200 });
+  response.status(200).json({ message: 'An email has been sent to your email address. Password reset link is only valid for 10 minutes.', status: 200 });
 });
 
-router.post('/resetpassword', async (request, response) => {
+router.post('/reset-password', async (request, response) => {
   const userEmail = request.body.email;
   const user = await UserModel.findOne({
     resetToken: request.body.token,
@@ -74,37 +74,36 @@ router.post('/resetpassword', async (request, response) => {
   });
 
   if (!user) {
-    response.status(400).json({ message: 'Invalid token', status: 400 });
+    response.status(400).json({ message: 'invalid token', status: 400 });
     return;
   }
 
-  // Ensure password provided, and matches  verifiypassword
-  if (!request.body.password
-    || !request.body.verifiedPassword
+  // ensure password was provided, and that the password matches the verified password
+  if (!request.body.password || !request.body.verifiedPassword
     || request.body.password !== request.body.verifiedPassword) {
-    response.status(400).json({ message: 'Passwords do not match', status: 400 });
+    response.status(400).json({ message: 'passwords do not match', status: 400 });
     return;
   }
 
-  // Update user model
+  // update user model
   user.password = request.body.password;
   user.resetToken = undefined;
   user.resetTokenExp = undefined;
   await user.save();
 
-  // Send user password update email
+  // send user password update email
   const emailOptions = {
     to: userEmail,
     from: email,
-    template: 'resetpassword',
-    subject: 'Zenva MMO password Reset Confirmation',
+    template: 'reset-password',
+    subject: 'Uncle Toadys MMO Password Reset Confirmation',
     context: {
       name: user.username,
     },
   };
   await smtpTransport.sendMail(emailOptions);
 
-  response.status(200).json({ message: 'Password updated', status: 200 });
+  response.status(200).json({ message: 'password updated', status: 200 });
 });
 
 export default router;

@@ -7,32 +7,32 @@ export default class LoginScene extends CredentialsBaseScene {
   }
 
   create() {
-    this.createUi(
-      'Login', this.login.bind(this),
-      'Forgot Password', this.startScene.bind(this, 'ForgotPassword'),
-      'Back', this.startScene.bind(this, 'Title'),
-    );
+    this.createUi('Login', this.login.bind(this), 'Forgot Password', this.startScene.bind(this, 'ForgotPassword'), 'Back', this.startScene.bind(this, 'Title'));
   }
 
   login() {
-    const loginValue = this.emailInput.value;
+    const loginValue = this.loginInput.value;
     const passwordValue = this.passwordInput.value;
 
     if (loginValue && passwordValue) {
-      postData(`${SERVER_URL}/login`, { email: loginValue, password: passwordValue }).then((response) => {
-        if (response.status === 200) {
-          refreshTokenInterval();
-          this.startScene('CharacterSelection');
-        } else {
-          console.log(response.error);
-          window.alert('Invalid username or password');
-        }
-      }).catch((error) => {
-        console.log(error.message);
-        window.alert('Invalid username or password');
-      });
+      postData(`${SERVER_URL}/login`, { email: loginValue, password: passwordValue })
+        .then((response) => {
+          if (response.status === 200) {
+            if (BYPASS_AUTH !== 'ENABLED') {
+              refreshTokenInterval();
+            }
+            this.startScene('CharacterSelection');
+          } else {
+            console.log(response.error);
+            window.alert('Invalid username or password.');
+          }
+        })
+        .catch((error) => {
+          console.log(error.message);
+          window.alert('Invalid username or password.');
+        });
     } else {
-      window.alert('Please complete all fields.');
+      window.alert('all fields must be filled out');
     }
   }
 }

@@ -1,3 +1,4 @@
+import v4 from 'uuid/v4';
 import jwt from 'jsonwebtoken';
 import PlayerModel from './PlayerModel';
 import * as levelData from '../public/assets/level/large_level.json';
@@ -60,8 +61,12 @@ export default class GameManager {
 
       socket.on('newPlayer', (token, frame) => {
         try {
-          const decoded = jwt.verify(token, process.env.JWT_SECRET);
-          const { name } = decoded.user;
+          let name = v4();
+          if (process.env.BYPASS_AUTH !== 'ENABLED') {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+            ({ name } = decoded.user);
+          }
 
           this.spawnPlayer(socket.id, name, frame);
 
@@ -78,10 +83,16 @@ export default class GameManager {
 
       socket.on('sendMessage', async (message, token) => {
         try {
-          const decoded = jwt.verify(token, process.env.JWT_SECRET);
-          const { name, email } = decoded.user;
+          let name = v4();
+          let email = '';
 
-          await ChatModel.create({ email, message });
+          if (process.env.BYPASS_AUTH !== 'ENABLED') {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+            ({ name, email } = decoded.user);
+
+            await ChatModel.create({ email, message });
+          }
 
           this.io.emit('newMessage', {
             message,

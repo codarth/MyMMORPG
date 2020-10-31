@@ -9,7 +9,7 @@ export function postData(url, data = {}) {
     },
     redirect: 'follow',
     body: JSON.stringify(data),
-  }).then((response) => response.json());
+  }).then(response => response.json());
 }
 
 export function createDiv(className) {
@@ -67,8 +67,8 @@ export function refreshTokenInterval() {
       .then(() => {})
       .catch((error) => {
         console.log(error.message);
-        window.alert('token nolonger valid, please login again.');
-        window.location.replace('./index.html');
+        window.alert('Token is no longer valid, please login again.');
+        window.location.replace('/index.html');
       });
   });
 }

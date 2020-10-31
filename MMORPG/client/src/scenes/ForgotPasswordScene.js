@@ -7,28 +7,28 @@ export default class ForgotPasswordScene extends CredentialsBaseScene {
   }
 
   create() {
-    this.createUi(
-      'Reset Password', this.resetPassword.bind(this),
-      'Back', this.startScene.bind(this, 'Login'),
-    );
+    this.createUi('Reset Password', this.resetPassword.bind(this), 'Back', this.startScene.bind(this, 'Login'));
 
     this.passwordInput.parentNode.removeChild(this.passwordInput);
     this.passwordLabel.parentNode.removeChild(this.passwordLabel);
   }
 
   resetPassword() {
-    const loginValue = this.emailInput.value;
+    const loginValue = this.loginInput.value;
 
     if (loginValue) {
-      postData(`${SERVER_URL}/forgotpassword`, { email: loginValue }).then((response) => {
-        console.log(response.message);
-        window.alert('If an account was found, a password reset was sent to the email.');
-      }).catch((error) => {
-        console.log(error.message);
-        window.alert('If an account was found, a password reset was sent to the email.');
-      });
+      postData(`${SERVER_URL}/forgot-password`, { email: loginValue })
+        .then((response) => {
+          console.log(response.message);
+          window.alert('If an account was found, a password reset email was sent.');
+          this.startScene('Title');
+        })
+        .catch((error) => {
+          console.log(error.message);
+          window.alert('If an account was found, a password reset email was sent.');
+        });
     } else {
-      window.alert('Please complete all fields.');
+      window.alert('all fields must be filled out');
     }
   }
 }

@@ -25,25 +25,27 @@ export default class SignUpScene extends CredentialsBaseScene {
   }
 
   signUp() {
-    const loginValue = this.emailInput.value;
+    const loginValue = this.loginInput.value;
     const passwordValue = this.passwordInput.value;
-    const usernameValue = this.userNameInput.value;
+    const userNameValue = this.userNameInput.value;
 
-    if (loginValue && passwordValue && usernameValue) {
-      postData(`${SERVER_URL}/signup`, { email: loginValue, password: passwordValue, username: usernameValue }).then((response) => {
-        if (response.status === 200) {
-          window.alert(response.message);
-          this.startScene('Login');
-        } else {
-          console.log(response.error);
-          window.alert('Invalid username or password');
-        }
-      }).catch((error) => {
-        console.log(error.message);
-        window.alert('Invalid username or password');
-      });
+    if (loginValue && passwordValue && userNameValue) {
+      postData(`${SERVER_URL}/signup`, { email: loginValue, password: passwordValue, username: userNameValue })
+        .then((response) => {
+          if (response.status === 200) {
+            window.alert(response.message);
+            this.startScene('Login');
+          } else {
+            console.log(response);
+            window.alert('Invalid username or password.');
+          }
+        })
+        .catch((error) => {
+          console.log(error.message);
+          window.alert('Invalid username or password.');
+        });
     } else {
-      window.alert('Please complete all fields.');
+      window.alert('all fields must be filled out');
     }
   }
 }
