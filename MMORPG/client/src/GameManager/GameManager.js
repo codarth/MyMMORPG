@@ -1,6 +1,6 @@
-import { SpawnerType } from './utils';
 import Spawner from './Spawner';
 import PlayerModel from './PlayerModel';
+import { SpawnerType } from './utils';
 
 export default class GameManager {
   constructor(scene, mapData) {
@@ -18,112 +18,90 @@ export default class GameManager {
   }
 
   setup() {
-    this.parseMapDate();
+    this.parseMapData();
     this.setupEventListener();
-    this.setupSpawner();
+    this.setupSpawners();
     this.spawnPlayer();
   }
 
-  parseMapDate() { // old map json setup (course map)
+  parseMapData() {
     this.mapData.forEach((layer) => {
       if (layer.name === 'player_locations') {
         layer.objects.forEach((obj) => {
-          this.playerLocations.push([obj.x + (obj.width / 2), obj.y - (obj.height / 2)]);
+          this.playerLocations.push([obj.x, obj.y]);
         });
       } else if (layer.name === 'chest_locations') {
         layer.objects.forEach((obj) => {
           if (this.chestLocations[obj.properties.spawner]) {
-            this.chestLocations[obj.properties.spawner]
-              .push([obj.x + (obj.width / 2),
-                obj.y - (obj.height / 2)]);
+            this.chestLocations[obj.properties.spawner].push([obj.x, obj.y]);
           } else {
-            this.chestLocations[obj.properties.spawner] = [[obj.x + (obj.width / 2),
-              obj.y - (obj.height / 2)]];
+            this.chestLocations[obj.properties.spawner] = [[obj.x, obj.y]];
           }
         });
       } else if (layer.name === 'monster_locations') {
         layer.objects.forEach((obj) => {
           if (this.monsterLocations[obj.properties.spawner]) {
-            this.monsterLocations[obj.properties.spawner]
-              .push([obj.x + (obj.width / 2), obj.y - (obj.height / 2)]);
+            this.monsterLocations[obj.properties.spawner].push([obj.x, obj.y]);
           } else {
-            this.monsterLocations[obj.properties.spawner] = [[obj.x + (obj.width / 2),
-              obj.y - (obj.height / 2)]];
+            this.monsterLocations[obj.properties.spawner] = [[obj.x, obj.y]];
           }
         });
       }
     });
   }
-  /* parseMapData() {      // for new map json setup
-            this.mapData.forEach((layer) => {
-            if (layer.name === 'player_locations') {
-                layer.objects.forEach((obj) => {
-                this.playerLocations.push([obj.x + (obj.width / 2), obj.y - (obj.height / 2)]);
-                });
-            } else if (layer.name === 'chest_locations') {
-                layer.objects.forEach((obj) => {
-                    var spawner = getTiledProperty(obj, 'spawner');
-                if (this.chestLocations[spawner]) {
-                    this.chestLocations[spawner]
-                    .push([obj.x + (obj.width / 2),
-                        obj.y - (obj.height / 2)]);
-                } else {
-                    this.chestLocations[spawner] = [[obj.x + (obj.width / 2),
-                        obj.y - (obj.height / 2)]];
-                }
-                });
-            } else if (layer.name === 'monster_locations') {
-                layer.objects.forEach((obj) => {
-                    var spawner = getTiledProperty(obj, 'spawner');
-                if (this.monsterLocations[spawner]) {
-                    this.monsterLocations[spawner]
-                    .push([obj.x + (obj.width / 2),
-                        obj.y - (obj.height / 2)]);
-                } else {
-                    this.monsterLocations[spawner] = [[obj.x + (obj.width / 2),
-                        obj.y - (obj.height / 2)]];
-                }
-                });
-            }
-            });
-        } */
 
   setupEventListener() {
-    this.scene.events.on('pickupChest', (chestId, playerId) => {
+    this.scene.events.on('pickUpChest', (chestId, playerId) => {
+      // update the spawner
       if (this.chests[chestId]) {
         const { gold } = this.chests[chestId];
+
+        // updating the players gold
         this.players[playerId].updateGold(gold);
         this.scene.events.emit('updateScore', this.players[playerId].gold);
 
+        // removing the chest
         this.spawners[this.chests[chestId].spawnerId].removeObject(chestId);
         this.scene.events.emit('chestRemoved', chestId);
       }
     });
 
     this.scene.events.on('monsterAttacked', (monsterId, playerId) => {
+      // update the spawner
       if (this.monsters[monsterId]) {
         const { gold, attack } = this.monsters[monsterId];
 
+        // subtract health monster model
         this.monsters[monsterId].loseHealth();
+
+        // check the monsters health, and if dead remove that object
         if (this.monsters[monsterId].health <= 0) {
+          // updating the players gold
           this.players[playerId].updateGold(gold);
           this.scene.events.emit('updateScore', this.players[playerId].gold);
 
+          // removing the monster
           this.spawners[this.monsters[monsterId].spawnerId].removeObject(monsterId);
           this.scene.events.emit('monsterRemoved', monsterId);
 
-          this.players[playerId].updateHealth(3);
+          // add bonus health to the player
+          this.players[playerId].updateHealth(2);
           this.scene.events.emit('updatePlayerHealth', playerId, this.players[playerId].health);
         } else {
+          // update the players health
           this.players[playerId].updateHealth(-attack);
           this.scene.events.emit('updatePlayerHealth', playerId, this.players[playerId].health);
 
+          // update the monsters health
           this.scene.events.emit('updateMonsterHealth', monsterId, this.monsters[monsterId].health);
 
+          // check the player's health, if below 0 have the player respawn
           if (this.players[playerId].health <= 0) {
+            // update the gold the player has
             this.players[playerId].updateGold(parseInt(-this.players[playerId].gold / 2, 10));
             this.scene.events.emit('updateScore', this.players[playerId].gold);
 
+            // respawn the player
             this.players[playerId].respawn();
             this.scene.events.emit('respawnPlayer', this.players[playerId]);
           }
@@ -132,18 +110,18 @@ export default class GameManager {
     });
   }
 
-  setupSpawner() {
+  setupSpawners() {
     const config = {
       spawnInterval: 3000,
       limit: 3,
-      spawnerType: SpawnerType.MONSTER,
+      spawnerType: SpawnerType.CHEST,
       id: '',
     };
     let spawner;
 
+    // create chest spawners
     Object.keys(this.chestLocations).forEach((key) => {
       config.id = `chest-${key}`;
-      config.spawnerType = SpawnerType.CHEST;
 
       spawner = new Spawner(
         config,
@@ -154,6 +132,7 @@ export default class GameManager {
       this.spawners[spawner.id] = spawner;
     });
 
+    // create monster spawners
     Object.keys(this.monsterLocations).forEach((key) => {
       config.id = `monster-${key}`;
       config.spawnerType = SpawnerType.MONSTER;

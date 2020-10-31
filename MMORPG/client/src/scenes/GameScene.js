@@ -372,7 +372,7 @@ export default class GameScene extends Phaser.Scene {
   collectChest(player, chest) {
     // play gold pickup sound
     this.goldPickupAudio.play();
-    this.socket.emit('pickUpChest', chest.id);
+    this.socket.emit('pickupChest', chest.id);
   }
 
   createMap() {

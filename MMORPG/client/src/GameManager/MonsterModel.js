@@ -1,4 +1,4 @@
-import v4 from 'uuid/dist/v4';
+import v4 from 'uuid/v4';
 import { randomNumber } from './utils';
 
 export default class MonsterModel {
@@ -10,9 +10,8 @@ export default class MonsterModel {
     this.gold = gold;
     this.frame = frame;
     this.health = health;
-    this.attack = attack;
-
     this.maxHealth = health;
+    this.attack = attack;
   }
 
   loseHealth() {
