@@ -54,8 +54,12 @@ export default class GameManager {
 
   setupEventListeners() {
     this.io.on('connection', (socket) => {
+      // player disconnected
       socket.on('disconnect', () => {
+        // delete user data from server
         delete this.players[socket.id];
+
+        // emit a message to all players to remove this player
         this.io.emit('disconnect', socket.id);
       });
 
@@ -63,17 +67,26 @@ export default class GameManager {
         try {
           let name = v4();
           if (process.env.BYPASS_AUTH !== 'ENABLED') {
+            // validate token, if valid send game information, else reject login
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+            // get the player's name
             ({ name } = decoded.user);
           }
 
+          // create a new Player
           this.spawnPlayer(socket.id, name, frame);
 
+          // send the players object to the new player
           socket.emit('currentPlayers', this.players);
+
+          // send the monsters object to the new player
           socket.emit('currentMonsters', this.monsters);
+
+          // send the chests object to the new player
           socket.emit('currentChests', this.chests);
 
+          // inform the other players of the new player that joined
           socket.broadcast.emit('spawnPlayer', this.players[socket.id]);
         } catch (error) {
           console.log(error.message);
@@ -87,13 +100,17 @@ export default class GameManager {
           let email = '';
 
           if (process.env.BYPASS_AUTH !== 'ENABLED') {
+            // validate token, if valid send game information, else reject login
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+            // get the player's name
             ({ name, email } = decoded.user);
 
+            // store the message in the database
             await ChatModel.create({ email, message });
           }
 
+          // emit the message to all players
           this.io.emit('newMessage', {
             message,
             name,
@@ -113,43 +130,61 @@ export default class GameManager {
           this.players[socket.id].playerAttacking = playerData.playerAttacking;
           this.players[socket.id].currentDirection = playerData.currentDirection;
 
+          // emit a message to all players about the player that moved
           this.io.emit('playerMoved', this.players[socket.id]);
         }
       });
 
-      socket.on('pickupChest', (chestId) => {
+      socket.on('pickUpChest', (chestId) => {
+        // update the spawner
         if (this.chests[chestId]) {
           const { gold } = this.chests[chestId];
+
+          // updating the players gold
           this.players[socket.id].updateGold(gold);
           socket.emit('updateScore', this.players[socket.id].gold);
+
+          // removing the chest
           this.spawners[this.chests[chestId].spawnerId].removeObject(chestId);
         }
       });
 
       socket.on('monsterAttacked', (monsterId) => {
+        // update the spawner
         if (this.monsters[monsterId]) {
           const { gold, attack } = this.monsters[monsterId];
 
+          // subtract health monster model
           this.monsters[monsterId].loseHealth();
+
+          // check the monsters health, and if dead remove that object
           if (this.monsters[monsterId].health <= 0) {
+            // updating the players gold
             this.players[socket.id].updateGold(gold);
             socket.emit('updateScore', this.players[socket.id].gold);
 
+            // removing the monster
             this.spawners[this.monsters[monsterId].spawnerId].removeObject(monsterId);
             this.io.emit('monsterRemoved', monsterId);
 
-            this.players[socket.id].updateHealth(3);
+            // add bonus health to the player
+            this.players[socket.id].updateHealth(2);
             this.io.emit('updatePlayerHealth', socket.id, this.players[socket.id].health);
           } else {
+            // update the players health
             this.players[socket.id].updateHealth(-attack);
             this.io.emit('updatePlayerHealth', socket.id, this.players[socket.id].health);
 
+            // update the monsters health
             this.io.emit('updateMonsterHealth', monsterId, this.monsters[monsterId].health);
 
+            // check the player's health, if below 0 have the player respawn
             if (this.players[socket.id].health <= 0) {
+              // update the gold the player has
               this.players[socket.id].updateGold(parseInt(-this.players[socket.id].gold / 2, 10));
               socket.emit('updateScore', this.players[socket.id].gold);
 
+              // respawn the player
               this.players[socket.id].respawn(this.players);
               this.io.emit('respawnPlayer', this.players[socket.id]);
             }
@@ -159,20 +194,29 @@ export default class GameManager {
 
       socket.on('attackedPlayer', (attackedPlayerId) => {
         if (this.players[attackedPlayerId]) {
+          // get required info from attacked player
           const { gold } = this.players[attackedPlayerId];
 
+          // subtract health from attacked player
           this.players[attackedPlayerId].updateHealth(-1);
 
+          // check attacked players health, if dead send gold to other player
           if (this.players[attackedPlayerId].health <= 0) {
+            // get the amount of gold, and update player object
             this.players[socket.id].updateGold(gold);
 
+            // respawn attacked player
             this.players[attackedPlayerId].respawn(this.players);
             this.io.emit('respawnPlayer', this.players[attackedPlayerId]);
 
+            // send update gold message to player
             socket.emit('updateScore', this.players[socket.id].gold);
+
+            // reset the attacked players gold
             this.players[attackedPlayerId].updateGold(-gold);
             this.io.to(`${attackedPlayerId}`).emit('updateScore', this.players[attackedPlayerId].gold);
 
+            // add bonus health to the player
             this.players[socket.id].updateHealth(2);
             this.io.emit('updatePlayerHealth', socket.id, this.players[socket.id].health);
           } else {
@@ -196,6 +240,7 @@ export default class GameManager {
     };
     let spawner;
 
+    // create chest spawners
     Object.keys(this.chestLocations).forEach((key) => {
       config.id = `chest-${key}`;
 
@@ -208,6 +253,7 @@ export default class GameManager {
       this.spawners[spawner.id] = spawner;
     });
 
+    // create monster spawners
     Object.keys(this.monsterLocations).forEach((key) => {
       config.id = `monster-${key}`;
       config.spawnerType = SpawnerType.MONSTER;

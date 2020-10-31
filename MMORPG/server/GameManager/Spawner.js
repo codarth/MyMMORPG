@@ -51,7 +51,7 @@ export default class Spawner {
       this.id,
       randomNumber(0, 20),
       randomNumber(3, 5),
-      randomNumber(1, 5),
+      1,
     );
     this.objectsCreated.push(monster);
     this.addObject(monster.id, monster);
