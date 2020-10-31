@@ -5,9 +5,19 @@ import jwt from 'jsonwebtoken';
 const tokenList = {};
 const router = express.Router();
 
-// router.get('/', (request, response) => {
-//     response.send('Holle');
-// });
+function processLogoutRequest(request, response) {
+  if (request.cookies) {
+    const refreshToken = request.cookies.refreshJwt;
+    if (refreshToken in tokenList) delete tokenList[refreshToken];
+    response.clearCookie('jwt');
+    response.clearCookie('refreshJwt');
+  }
+  if (request.method === 'POST') {
+    response.status(200).json({ message: 'logged out', status: 200 });
+  } else if (request.method === 'GET') {
+    response.sendFile('logout.html', { root: './public' });
+  }
+}
 
 router.get('/status', (request, response) => {
   response.status(200).json({ message: 'ok', status: 200 });
@@ -39,8 +49,9 @@ router.post('/login', async (request, response, next) => {
         };
 
         const token = jwt.sign({ user: body }, process.env.JWT_SECRET, { expiresIn: 300 });
-        const refreshToken = jwt.sign({ user: body },
-          process.env.JWT_REFRESH_SECRET, { expiresIn: 86400 });
+        const refreshToken = jwt.sign(
+          { user: body }, process.env.JWT_REFRESH_SECRET, { expiresIn: 86400 },
+        );
 
         // Store tokens in cookie
         response.cookie('jwt', token);
@@ -65,20 +76,6 @@ router.post('/login', async (request, response, next) => {
   })(request, response, next);
 });
 
-function processLogoutRequest(request, response) {
-  if (request.cookies) {
-    const refreshToken = request.cookies.refreshJwt;
-    if (refreshToken in tokenList) delete tokenList[refreshToken];
-    response.clearCookie('jwt');
-    response.clearCookie('refreshJwt');
-  }
-  if (request.method === 'POST') {
-    response.status(200).json({ message: 'logged out', status: 200 });
-  } else if (request.method === 'GET') {
-    response.sendFile('logout.html', { root: './public' });
-  }
-}
-
 router.route('/logout')
   .get(processLogoutRequest)
   .post(processLogoutRequest);
@@ -98,7 +95,7 @@ router.post('/token', (request, response) => {
     tokenList[refreshToken].token = token;
     response.status(200).json({ token, status: 200 });
   } else {
-    response.status(410).json({ message: 'nope, unauthorized', status: 401 });
+    response.status(401).json({ message: 'nope, unauthorized', status: 401 });
   }
 });
 

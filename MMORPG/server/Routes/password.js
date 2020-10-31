@@ -45,8 +45,9 @@ router.post('/forgotpassword', async (request, response) => {
   const token = buffer.toString('hex');
 
   // update user reset password token and exp
-  await UserModel.findByIdAndUpdate({ _id: user._id },
-    { resetToken: token, resetTokenExp: Date.now() + 600000 });
+  await UserModel.findByIdAndUpdate(
+    { _id: user._id }, { resetToken: token, resetTokenExp: Date.now() + 600000 },
+  );
 
   // Send user password reset email
   const emailOptions = {

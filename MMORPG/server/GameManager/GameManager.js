@@ -19,12 +19,12 @@ export default class GameManager {
   }
 
   setup() {
-    this.parseMapDate();
+    this.parseMapData();
     this.setupEventListeners();
-    this.setupSpawner();
+    this.setupSpawners();
   }
 
-  parseMapDate() {
+  parseMapData() {
     this.levelData = levelData;
     this.levelData.layers.forEach((layer) => {
       if (layer.name === 'player_locations') {
@@ -58,24 +58,6 @@ export default class GameManager {
         this.io.emit('disconnect', socket.id);
       });
 
-      socket.on('sendMessage', async (message, token) => {
-        try {
-          const decoded = jwt.verify(token, process.env.JWT_SECRET);
-          const { name, email } = decoded.user;
-
-          await ChatModel.create({ email, message });
-
-          this.io.emit('newMessage', {
-            message,
-            name,
-            frame: this.players[socket.id].frame,
-          });
-        } catch (error) {
-          console.log(error.message);
-          socket.emit('invalidToken');
-        }
-      });
-
       socket.on('newPlayer', (token, frame) => {
         try {
           const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -94,12 +76,21 @@ export default class GameManager {
         }
       });
 
-      socket.on('pickupChest', (chestId) => {
-        if (this.chests[chestId]) {
-          const { gold } = this.chests[chestId];
-          this.players[socket.id].updateGold(gold);
-          socket.emit('updateScore', this.players[socket.id].gold);
-          this.spawners[this.chests[chestId].spawnerId].removeObject(chestId);
+      socket.on('sendMessage', async (message, token) => {
+        try {
+          const decoded = jwt.verify(token, process.env.JWT_SECRET);
+          const { name, email } = decoded.user;
+
+          await ChatModel.create({ email, message });
+
+          this.io.emit('newMessage', {
+            message,
+            name,
+            frame: this.players[socket.id].frame,
+          });
+        } catch (error) {
+          console.log(error.message);
+          socket.emit('invalidToken');
         }
       });
 
@@ -112,6 +103,15 @@ export default class GameManager {
           this.players[socket.id].currentDirection = playerData.currentDirection;
 
           this.io.emit('playerMoved', this.players[socket.id]);
+        }
+      });
+
+      socket.on('pickupChest', (chestId) => {
+        if (this.chests[chestId]) {
+          const { gold } = this.chests[chestId];
+          this.players[socket.id].updateGold(gold);
+          socket.emit('updateScore', this.players[socket.id].gold);
+          this.spawners[this.chests[chestId].spawnerId].removeObject(chestId);
         }
       });
 
@@ -169,21 +169,24 @@ export default class GameManager {
           }
         }
       });
+
+      // player connected to our game
+      console.log('player connected to our game');
+      console.log(socket.id);
     });
   }
 
-  setupSpawner() {
+  setupSpawners() {
     const config = {
       spawnInterval: 3000,
       limit: 3,
-      spawnerType: SpawnerType.MONSTER,
+      spawnerType: SpawnerType.CHEST,
       id: '',
     };
     let spawner;
 
     Object.keys(this.chestLocations).forEach((key) => {
       config.id = `chest-${key}`;
-      config.spawnerType = SpawnerType.CHEST;
 
       spawner = new Spawner(
         config,

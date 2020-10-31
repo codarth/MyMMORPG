@@ -1,6 +1,6 @@
 import passport from 'passport';
 import localStrategy from 'passport-local';
-import JwtStrategy from 'passport-jwt';
+import jwtStrategy from 'passport-jwt';
 
 import UserModel from '../models/UserModel';
 
@@ -40,7 +40,7 @@ passport.use('login', new localStrategy.Strategy({
 }));
 
 // Verify jwt token
-passport.use(new JwtStrategy.Strategy({
+passport.use(new jwtStrategy.Strategy({
   secretOrKey: process.env.JWT_SECRET,
   jwtFromRequest: (request) => {
     let token = null;

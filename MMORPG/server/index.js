@@ -1,15 +1,16 @@
 import 'dotenv/config';
+import path from 'path';
 import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
 import passport from 'passport';
-import GameManager from './GameManager/GameManager'
 
 import routes from './Routes/main';
 import passwordRoutes from './Routes/password';
 import secureRoutes from './Routes/secure';
+import GameManager from './GameManager/GameManager';
 
 // Setup mongo connection
 const uri = process.env.MONGO_CONNECTION_URL;
@@ -36,28 +37,28 @@ const app = express();
 const server = require('http').Server(app);
 const io = require('socket.io').listen(server);
 
-const gameManagaer = new GameManager(io);
-gameManagaer.setup();
+const gameManager = new GameManager(io);
+gameManager.setup();
 
 const port = process.env.PORT || 3000;
 
 // update express settings
 app.use(bodyParser.urlencoded({ extended: false })); // parse application/x-www-form-urlendcoded
 app.use(bodyParser.json()); // parse application/json
-app.use(cors({ credentials: true, origin: process.env.CORS_ORIGIN }));
 app.use(cookieParser());
+app.use(cors({ credentials: true, origin: process.env.CORS_ORIGIN }));
 
 // require passport auth
-require('./auth/auth.js');
+require('./auth/auth');
 
 app.get('/game.html', passport.authenticate('jwt', { session: false }), (request, response) => {
   response.status(200).json(request.user);
 });
 
-app.use(express.static(`${__dirname}/public`));
+app.use(express.static(path.join(__dirname, '/public')));
 
 app.get('/', (request, response) => {
-  response.send(`${__dirname}/index.html`);
+  response.send(path.join(__dirname, '/index.html'));
 });
 
 // setup routes

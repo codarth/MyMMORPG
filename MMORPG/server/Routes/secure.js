@@ -11,7 +11,7 @@ router.post('/chat', async (request, response) => {
     const { message } = request.body;
     const { email } = request.user;
     const chat = await ChatModel.create({ email, message });
-    response.status(200).json({ chat, message: 'Message sent', status: 200 });
+    response.status(200).json({ chat, message: 'message sent', status: 200 });
   }
 });
 
