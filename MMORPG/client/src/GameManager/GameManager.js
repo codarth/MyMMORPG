@@ -51,7 +51,7 @@ export default class GameManager {
   }
 
   setupEventListener() {
-    this.scene.events.on('pickUpChest', (chestId, playerId) => {
+    this.scene.events.on('pickupChest', (chestId, playerId) => {
       // update the spawner
       if (this.chests[chestId]) {
         const { gold } = this.chests[chestId];

@@ -135,7 +135,7 @@ export default class GameManager {
         }
       });
 
-      socket.on('pickUpChest', (chestId) => {
+      socket.on('pickupChest', (chestId) => {
         // update the spawner
         if (this.chests[chestId]) {
           const { gold } = this.chests[chestId];
