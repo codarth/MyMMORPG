@@ -2,6 +2,7 @@ import * as Phaser from 'phaser';
 import PlayerContainer from '../classes/Player/PlayerContainer';
 import Chest from '../classes/Chest';
 import Monster from '../classes/Monster';
+import Item from '../classes/Item';
 import GameMap from '../classes/GameMap';
 import { getCookie } from '../utils/utils';
 import DialogWindow from '../classes/DialogWindow';
@@ -165,6 +166,44 @@ export default class GameScene extends Phaser.Scene {
     this.socket.on('newMessage', (messageObject) => {
       this.dialogWindow.addNewMessage(messageObject);
     });
+
+    this.socket.on('currentItems', (items) => {
+      Object.keys(items).forEach((id) => {
+        this.spawnItem(items[id]);
+      });
+    });
+
+    this.socket.on('itemSpawned', (item) => {
+      this.spawnItem(item);
+    });
+
+    this.socket.on('updateItems', (playerObject) => {
+      this.player.items = playerObject.playerItems;
+      this.player.maxHealth = playerObject.maxHealth;
+      this.player.attackValue = playerObject.attack;
+      this.player.defenceValue = playerObject.defenceValue;
+      this.player.updateHealthBar();
+    });
+
+    this.socket.on('updatePlayersItems', (playerId, playerObject) => {
+      this.otherPlayers.getChildren().forEach((otherPlayer) => {
+        if (playerId === otherPlayer.id) {
+          otherPlayer.items = playerObject.playerItems;
+          otherPlayer.maxHealth = playerObject.maxHealth;
+          otherPlayer.attackValue = playerObject.attack;
+          otherPlayer.defenceValue = playerObject.defenceValue;
+          otherPlayer.updateHealthBar();
+        }
+      });
+    });
+
+    this.socket.on('itemRemoved', (itemId) => {
+      this.items.getChildren().forEach((item) => {
+        if (item.id === itemId) {
+          item.makeInactive();
+        }
+      });
+    });
   }
 
   create() {
@@ -288,6 +327,23 @@ export default class GameScene extends Phaser.Scene {
     // create an other players group
     this.otherPlayers = this.physics.add.group();
     this.otherPlayers.runChildUpdate = true;
+    // create an items group
+    this.items = this.physics.add.group();
+  }
+
+  spawnItem(itemObject) {
+    let item = this.items.getFirstDead();
+    if (!item) {
+      item = new Item(this, itemObject.x * 2, itemObject.y * 2, 'tools', itemObject.frame, itemObject.id);
+      // add item to items group
+      this.items.add(item);
+    } else {
+      item.id = itemObject.id;
+      item.frame = itemObject.frame;
+      item.setFrame(item.frame);
+      item.setPosition(itemObject.x * 2, itemObject.y * 2);
+      item.makeActive();
+    }
   }
 
   spawnChest(chestObject) {
@@ -348,6 +404,8 @@ export default class GameScene extends Phaser.Scene {
     this.physics.add.overlap(
       this.player.weapon, this.otherPlayers, this.weaponOverlapEnemy, false, this,
     );
+    // check for overlaps between player and item game objects
+    this.physics.add.overlap(this.player, this.items, this.collectItem, null, this);
   }
 
   pvpCollider(player, otherPlayer) {
@@ -367,6 +425,10 @@ export default class GameScene extends Phaser.Scene {
       this.player.swordHit = true;
       this.socket.emit('monsterAttacked', enemy.id);
     }
+  }
+
+  collectItem(player, item) {
+    this.socket.emit('pickupItem', item.id);
   }
 
   collectChest(player, chest) {

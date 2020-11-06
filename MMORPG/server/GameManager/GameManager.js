@@ -5,6 +5,7 @@ import * as levelData from '../public/assets/level/large_level.json';
 import Spawner from './Spawner';
 import { SpawnerType } from './utils';
 import ChatModel from '../models/ChatModel';
+import * as itemData from '../public/assets/level/tools.json';
 
 export default class GameManager {
   constructor(io) {
@@ -13,10 +14,12 @@ export default class GameManager {
     this.chests = {};
     this.monsters = {};
     this.players = {};
+    this.items = {};
 
     this.playerLocations = [];
     this.chestLocations = {};
     this.monsterLocations = {};
+    this.itemLocations = itemData.locations;
   }
 
   setup() {
@@ -86,6 +89,9 @@ export default class GameManager {
           // send the chests object to the new player
           socket.emit('currentChests', this.chests);
 
+          // send the items object to the new player
+          socket.emit('currentItems', this.items);
+
           // inform the other players of the new player that joined
           socket.broadcast.emit('spawnPlayer', this.players[socket.id]);
         } catch (error) {
@@ -135,6 +141,20 @@ export default class GameManager {
         }
       });
 
+      socket.on('pickupItem', (itemId) => {
+        // update the spawner
+        if (this.items[itemId]) {
+          if (this.players[socket.id].canPickupItem()) {
+            this.players[socket.id].addItem(this.items[itemId]);
+            socket.emit('updateItems', this.players[socket.id]);
+            socket.broadcast.emit('updatePlayersItems', socket.id, this.players[socket.id]);
+
+            // removing the item
+            this.spawners[this.items[itemId].spawnerId].removeObject(itemId);
+          }
+        }
+      });
+
       socket.on('pickupChest', (chestId) => {
         // update the spawner
         if (this.chests[chestId]) {
@@ -153,9 +173,10 @@ export default class GameManager {
         // update the spawner
         if (this.monsters[monsterId]) {
           const { gold, attack } = this.monsters[monsterId];
+          const playerAttackValue = this.players[socket.id].attack;
 
           // subtract health monster model
-          this.monsters[monsterId].loseHealth();
+          this.monsters[monsterId].loseHealth(playerAttackValue);
 
           // check the monsters health, and if dead remove that object
           if (this.monsters[monsterId].health <= 0) {
@@ -168,11 +189,11 @@ export default class GameManager {
             this.io.emit('monsterRemoved', monsterId);
 
             // add bonus health to the player
-            this.players[socket.id].updateHealth(2);
+            this.players[socket.id].updateHealth(15);
             this.io.emit('updatePlayerHealth', socket.id, this.players[socket.id].health);
           } else {
             // update the players health
-            this.players[socket.id].updateHealth(-attack);
+            this.players[socket.id].playerAttacked(attack);
             this.io.emit('updatePlayerHealth', socket.id, this.players[socket.id].health);
 
             // update the monsters health
@@ -196,9 +217,10 @@ export default class GameManager {
         if (this.players[attackedPlayerId]) {
           // get required info from attacked player
           const { gold } = this.players[attackedPlayerId];
+          const playerAttackValue = this.players[socket.id].attack;
 
           // subtract health from attacked player
-          this.players[attackedPlayerId].updateHealth(-1);
+          this.players[attackedPlayerId].playerAttacked(playerAttackValue);
 
           // check attacked players health, if dead send gold to other player
           if (this.players[attackedPlayerId].health <= 0) {
@@ -217,7 +239,7 @@ export default class GameManager {
             this.io.to(`${attackedPlayerId}`).emit('updateScore', this.players[attackedPlayerId].gold);
 
             // add bonus health to the player
-            this.players[socket.id].updateHealth(2);
+            this.players[socket.id].updateHealth(15);
             this.io.emit('updatePlayerHealth', socket.id, this.players[socket.id].health);
           } else {
             this.io.emit('updatePlayerHealth', attackedPlayerId, this.players[attackedPlayerId].health);
@@ -267,6 +289,18 @@ export default class GameManager {
       );
       this.spawners[spawner.id] = spawner;
     });
+
+    // create item spawner
+    config.id = 'item';
+    config.spawnerType = SpawnerType.ITEM;
+    config.limit = 1;
+    spawner = new Spawner(
+      config,
+      this.itemLocations,
+      this.addItem.bind(this),
+      this.deleteItem.bind(this),
+    );
+    this.spawners[spawner.id] = spawner;
   }
 
   spawnPlayer(playerId, name, frame) {
@@ -296,5 +330,15 @@ export default class GameManager {
 
   moveMonsters() {
     this.io.emit('monsterMovement', this.monsters);
+  }
+
+  addItem(itemId, item) {
+    this.items[itemId] = item;
+    this.io.emit('itemSpawned', item);
+  }
+
+  deleteItem(itemId) {
+    delete this.items[itemId];
+    this.io.emit('itemRemoved', itemId);
   }
 }
