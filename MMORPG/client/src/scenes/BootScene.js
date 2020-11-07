@@ -21,6 +21,13 @@ export default class BootScene extends Phaser.Scene {
     this.load.image('button2', 'assets/images/ui/blue_button02.png');
     // load the map tileset image
     this.load.image('background', 'assets/level/background-extruded.png');
+
+    this.load.image('inventoryShield', 'assets/images/condensation_shield_new.png');
+    this.load.image('inventoryGold', 'assets/images/gold_pile_16.png');
+    this.load.image('inventoryButton', 'assets/images/instructions.png');
+    this.load.image('inventorySword', 'assets/images/infusion.png');
+    this.load.image('inventoryRemove', 'assets/images/prompt_no.png');
+    this.load.image('inventoryHeart', 'assets/images/regeneration_new.png');
   }
 
   loadSpriteSheets() {
@@ -45,6 +52,6 @@ export default class BootScene extends Phaser.Scene {
 
   create() {
     // TODO: change back to title
-    this.scene.start('Game');
+    this.scene.start('Title');
   }
 }

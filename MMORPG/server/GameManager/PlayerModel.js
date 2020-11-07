@@ -16,8 +16,8 @@ export default class PlayerModel {
 
     const location = this.generateLocation(players);
     [this.x, this.y] = location;
-    this.x = 180;
-    this.y = 200;
+    // this.x = 180;
+    // this.y = 200;
   }
 
   playerAttacked(attack) {
@@ -34,10 +34,16 @@ export default class PlayerModel {
 
   addItem(item) {
     this.playerItems[item.id] = item;
+    this.attack += item.attackBonus;
+    this.defence += item.defenceBonus;
+    this.maxHealth += item.healthBonus;
   }
 
-  removeItem(item) {
-    delete this.playerItems[item.id];
+  removeItem(itemId) {
+    this.attack -= this.playerItems[itemId].attackBonus;
+    this.defence -= this.playerItems[itemId].defenceBonus;
+    this.maxHealth -= this.playerItems[itemId].healthBonus;
+    delete this.playerItems[itemId];
   }
 
   updateGold(gold) {

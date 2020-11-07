@@ -108,8 +108,17 @@ export default class GameScene extends Phaser.Scene {
       });
     });
 
+    this.socket.on('updatePlayerScore', (playerid, goldAmount) => {
+      this.otherPlayers.getChildren().forEach((otherPlayer) => {
+        if (playerid === otherPlayer.id) {
+          otherPlayer.gold = goldAmount;
+        }
+      });
+    });
+
     this.socket.on('updateScore', (goldAmount) => {
       this.events.emit('updateScore', goldAmount);
+      this.player.gold = goldAmount;
     });
 
     this.socket.on('updateMonsterHealth', (monsterId, health) => {
@@ -309,6 +318,10 @@ export default class GameScene extends Phaser.Scene {
       this.playerAttackAudio,
       mainPlayer,
       playerObject.playerName,
+      playerObject.gold,
+      playerObject.defence,
+      playerObject.attack,
+      playerObject.playerItems,
     );
 
     if (!mainPlayer) {
@@ -316,6 +329,11 @@ export default class GameScene extends Phaser.Scene {
     } else {
       this.player = newPlayerGameObject;
     }
+
+    newPlayerGameObject.setInteractive();
+    newPlayerGameObject.on('pointerdown', () => {
+      this.events.emit('showInventory', newPlayerGameObject, mainPlayer);
+    });
   }
 
   createGroups() {
@@ -447,5 +465,9 @@ export default class GameScene extends Phaser.Scene {
 
     this.cameras.resize(width, height);
     this.dialogWindow.resize(gameSize);
+  }
+
+  sendDropItemMessage(itemId) {
+    this.socket.emit('playerDroppedItem', itemId);
   }
 }

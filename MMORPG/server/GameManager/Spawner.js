@@ -45,8 +45,8 @@ export default class Spawner {
   }
 
   spawnItem() {
-    //const location = this.pickRandomLocation();
-    const location = [150, 220];
+    const location = this.pickRandomLocation();
+    // const location = [150, 220];
     const randomItem = itemData.items[Math.floor(Math.random() * itemData.items.length)];
     const item = new ItemModel(
       location[0], location[1], this.id, randomItem.name,

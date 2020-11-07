@@ -141,6 +141,12 @@ export default class GameManager {
         }
       });
 
+      socket.on('playerDroppedItem', (itemId) => {
+        this.players[socket.id].removeItem(itemId);
+        socket.emit('updateItems', this.players[socket.id]);
+        socket.broadcast.emit('updatePlayersItems', socket.id, this.players[socket.id]);
+      });
+
       socket.on('pickupItem', (itemId) => {
         // update the spawner
         if (this.items[itemId]) {
@@ -163,6 +169,7 @@ export default class GameManager {
           // updating the players gold
           this.players[socket.id].updateGold(gold);
           socket.emit('updateScore', this.players[socket.id].gold);
+          socket.broadcast.emit('updatePlayerScore', socket.id, this.players[socket.id].gold);
 
           // removing the chest
           this.spawners[this.chests[chestId].spawnerId].removeObject(chestId);
@@ -293,7 +300,8 @@ export default class GameManager {
     // create item spawner
     config.id = 'item';
     config.spawnerType = SpawnerType.ITEM;
-    config.limit = 1;
+    config.limit = 3;
+    config.spawnInterval = 1000 * 60 * 5;
     spawner = new Spawner(
       config,
       this.itemLocations,
